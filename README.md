@@ -16,14 +16,17 @@ SQLite 예제를 변환할 수 있습니다.
 
 ```sh
 uv sync --locked
-uv run kaitai-svg examples/sqlite3.ksy --interactive
+
+uv run kaitai-svg examples/sqlite3.ksy \
+    --interactive \
+    --color-type-edges \
+    --router orthogonal \
+    --layout optimized-with-space \
+    --hide vlq_base128_be.ksy \
+    --layout-width 6000
 ```
 
-SVG는 입력 `.ksy` 파일 옆에 같은 이름으로 저장됩니다. 위 명령은
-`examples/sqlite3.svg`를 갱신합니다. 위 미리보기에는 추가로
-`--color-type-edges`, `--router orthogonal`,
-`--hide vlq_base128_be.ksy`를 사용했습니다. 자신의 스키마에는 파일 경로나
-인용된 glob을 지정하세요.
+SVG는 입력 `.ksy` 파일 옆에 같은 이름으로 저장됩니다.
 
 ```sh
 uv run kaitai-svg path/to/schema.ksy
@@ -101,12 +104,12 @@ enum을 SVG에서 제외합니다. 타입·enum 참조와 표현식에 명시된
 방법을 선택합니다. 연결선 경로를 정하는 `--router`와 독립적으로 지정할 수
 있습니다.
 
-| 이름        | 구현              | 동작                                                                  |
-| ----------- | ----------------- | --------------------------------------------------------------------- |
-| `default`   | `DefaultLayout`   | 기존 파일별 크기 균형 배치. 파일 정보가 없는 그래프는 기존 계층형 배치 |
-| `optimized` | `OptimizedLayout` | 연결 관계를 고려한 배치 후보를 만들고 실제 라우팅 결과로 비교          |
-| `optimized-with-space` | `OptimizedWithSpaceLayout` | 표의 컬럼 폭과 줄바꿈, 카드·열·파일 그룹 사이 간격을 함께 조정 |
-| `vertical-optimized` | `VerticalOptimizedLayout` | 가로폭을 제한하고 파일 그룹을 세로로 배치해 웹페이지 스크롤에 맞춤 |
+| 이름                   | 구현                       | 동작                                                                   |
+| ---------------------- | -------------------------- | ---------------------------------------------------------------------- |
+| `default`              | `DefaultLayout`            | 기존 파일별 크기 균형 배치. 파일 정보가 없는 그래프는 기존 계층형 배치 |
+| `optimized`            | `OptimizedLayout`          | 연결 관계를 고려한 배치 후보를 만들고 실제 라우팅 결과로 비교          |
+| `optimized-with-space` | `OptimizedWithSpaceLayout` | 표의 컬럼 폭과 줄바꿈, 카드·열·파일 그룹 사이 간격을 함께 조정         |
+| `vertical-optimized`   | `VerticalOptimizedLayout`  | 가로폭을 제한하고 파일 그룹을 세로로 배치해 웹페이지 스크롤에 맞춤     |
 
 ```sh
 uv run kaitai-svg examples/sqlite3.ksy --layout optimized --router orthogonal
@@ -228,12 +231,12 @@ SQLite 예제의 15개 카드·24개 연결선을 `orthogonal` 라우터로 비�
 계산 시간은 실행 환경에 따라 달라집니다. 길이와 크기는 SVG 좌표 기준이며,
 화면 크기는 반올림했습니다.
 
-| 배치        | 공유 선분 길이 | 교차 수 | 꺾임 수 | 경로 길이  | 화면 크기       | 계산 시간 |
-| ----------- | -------------- | ------- | ------- | ---------- | --------------- | --------- |
-| `default`   | 0              | 71      | 98      | 41,932.25  | 2,232 × 2,189   | 약 2.01초 |
-| `optimized` | 0              | 30      | 62      | 27,004.75  | 4,474 × 2,177   | 약 3.88초 |
-| `optimized-with-space` | 0   | 25      | 82      | 21,767.05  | 3,671 × 1,391   | 약 14.84초 |
-| `vertical-optimized` | 0       | 38      | 96      | 35,767.5   | 745 × 5,194     | 약 1.68초 |
+| 배치                   | 공유 선분 길이 | 교차 수 | 꺾임 수 | 경로 길이 | 화면 크기     | 계산 시간  |
+| ---------------------- | -------------- | ------- | ------- | --------- | ------------- | ---------- |
+| `default`              | 0              | 71      | 98      | 41,932.25 | 2,232 × 2,189 | 약 2.01초  |
+| `optimized`            | 0              | 30      | 62      | 27,004.75 | 4,474 × 2,177 | 약 3.88초  |
+| `optimized-with-space` | 0              | 25      | 82      | 21,767.05 | 3,671 × 1,391 | 약 14.84초 |
+| `vertical-optimized`   | 0              | 38      | 96      | 35,767.5  | 745 × 5,194   | 약 1.68초  |
 
 `optimized-with-space`는 폭 제한 없이 측정했습니다. `optimized`에 비해 폭은
 약 18%, 면적은 약 48% 줄었으며, 교차는 5개 줄고 꺾임은 20개 늘었습니다.

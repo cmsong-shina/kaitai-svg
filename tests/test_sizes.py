@@ -70,6 +70,75 @@ class SizeTests(SchemaTestCase):
         self.assertEqual([(row.pos_label, row.size_label) for row in node.rows], [("0", "9 bit"), ("2", "8 B"), ("10", "count × 4 B"), ("?", "1 B")])
         self.assertEqual(node.size_label, "?")
 
+    def test_symbolic_repeats_use_fixed_custom_type_sizes(self):
+        root = self.schema("registers.ksy", """
+            meta: {id: registers}
+            seq: [{id: pairs, type: register_pairs}]
+            types:
+              register_pairs:
+                seq:
+                  - id: num_commands
+                    type: u1
+                    valid: {expr: '_io.size == 1 + _ * 4'}
+                  - id: commands
+                    type: register_pair
+                    repeat: expr
+                    repeat-expr: num_commands
+                  - {id: trailer, type: u1}
+              register_pair:
+                seq:
+                  - {id: index, type: u2}
+                  - {id: value, type: u2}
+            """)
+        graph = load_graph(root)
+        node = named(graph, "registers::register_pairs")
+        self.assertEqual([(row.pos_label, row.size_label) for row in node.rows],
+                         [("0", "1 B"), ("1", "num_commands × 4 B"), ("?", "1 B")])
+        self.assertEqual(node.size_label, "?")
+
+    def test_symbolic_repeats_resolve_imported_nested_types_after_unknown_offsets(self):
+        root = self.schema("root.ksy", """
+            meta: {id: root, imports: [common], encoding: UTF-8}
+            seq:
+              - {id: name, type: strz}
+              - {id: entries, type: 'common::entry', repeat: expr, repeat-expr: count}
+            """)
+        self.schema("common.ksy", """
+            meta: {id: common}
+            types:
+              entry:
+                seq: [{id: pair, type: pair}]
+                types:
+                  pair:
+                    seq: [{id: index, type: u2}, {id: value, type: u2}]
+            """)
+        row = named(load_graph(root), "root").rows[1]
+        self.assertEqual((row.pos_label, row.size_label), ("?", "count × 4 B"))
+
+    def test_symbolic_custom_repeats_require_a_stable_size_across_bit_alignment(self):
+        for fields, prefix, expected in (
+            ("[{id: data, type: b3}]", "[]", "count × 3 bit"),
+            ("[{id: byte, type: u1}, {id: tail, type: b3}]", "[]", "count × ?"),
+            ("[{id: head, type: b3}, {id: byte, type: u1}]", "[]", "count × 2 B"),
+            ("[{id: head, type: b3}, {id: byte, type: u1}]", "[{id: prefix, type: b3}]", "count × ?"),
+            ("[{id: data, size-eos: true}]", "[]", "count × ?"),
+            ("[{id: data, type: u1, if: enabled}]", "[]", "count × ?"),
+            ("[{id: child, type: entry}]", "[]", "count × ?"),
+        ):
+            with self.subTest(fields=fields, prefix=prefix):
+                root = self.schema("alignment.ksy", f"""
+                    meta: {{id: alignment}}
+                    seq:
+                      - {{id: prefix, type: prefix}}
+                      - {{id: entries, type: entry, repeat: expr, repeat-expr: count}}
+                    types:
+                      prefix:
+                        seq: {prefix}
+                      entry:
+                        seq: {fields}
+                    """)
+                self.assertEqual(named(load_graph(root), "alignment").rows[1].size_label, expected)
+
     def test_conditionals_and_instances_do_not_invent_fixed_sizes(self):
         root = self.schema("optional.ksy", """
             meta: {id: optional}

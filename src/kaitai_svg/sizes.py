@@ -256,6 +256,34 @@ class _Analyzer:
         pos = cursor.aligned()
         return _Read(pos, _Range(pos.low, None), _Range())
 
+    def fixed_repeat_unit(self, scope: Any, spec: dict, cursor: _Range, active: frozenset[str], result: _Read) -> str:
+        if result.size.high is None or result.size.low != result.size.high:
+            return "?"
+        if result.end.low == result.end.high:
+            pending = {result.end.low % 8}
+        else:
+            residues = range(8) if cursor.high is None or cursor.high - cursor.low >= 7 else {value % 8 for value in range(cursor.low, cursor.high + 1)}
+            pending = set()
+            for residue in residues:
+                read = self.atom(scope, spec, _Range.exact(residue), active)
+                if read.end.low != read.end.high or read.size != result.size:
+                    return "?"
+                pending.add(read.end.low % 8)
+        # Custom types can align again between iterations. Verify a constant
+        # stride at every reachable bit residue (at most eight), including any
+        # leading padding that the single-item size intentionally excludes.
+        visited = set()
+        while pending:
+            residue = pending.pop()
+            visited.add(residue)
+            read = self.atom(scope, spec, _Range.exact(residue), active)
+            if read.end != _Range.exact(residue + result.size.low):
+                return "?"
+            following = read.end.low % 8
+            if following not in visited:
+                pending.add(following)
+        return _size(result.size, result.bits)
+
     def field(self, scope: Any, spec: dict, cursor: _Range, active: frozenset[str]) -> _Read:
         if "value" in spec:
             return _Read(cursor, cursor, _Range.exact(0))
@@ -269,7 +297,7 @@ class _Analyzer:
                 or bool(_BIT_TYPE.fullmatch(str(spec.get("type", ""))))
             )
             if count is None:
-                unit = result.label or _size(result.size, result.bits) if simple else "?"
+                unit = (result.label or _size(result.size, result.bits)) if simple else self.fixed_repeat_unit(scope, spec, cursor, active, result)
                 label = f"{spec.get('repeat-expr', '?')} × {unit}"
                 result = _Read(result.pos, _Range(cursor.low, None), _Range(), result.bits, label)
             elif count == 0:

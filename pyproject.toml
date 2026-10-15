@@ -1,0 +1,32 @@
+[project]
+name = "kaitai-interactive-svg"
+version = "0.1.0"
+description = "Render validated Kaitai Struct schemas as standalone interactive SVG diagrams"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = ["pyyaml>=6.0.3,<7", "jsonschema>=4.26,<5"]
+
+[project.scripts]
+kaitai-svg = "kaitai_svg.cli:main"
+kaitai-interactive-svg = "kaitai_svg.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/kaitai_svg"]
+
+# These two binary distributions have no runtime dependencies. Supplying their
+# published metadata lets uv resolve a universal lock from an offline wheel cache.
+[[tool.uv.dependency-metadata]]
+name = "pyyaml"
+version = "6.0.3"
+requires-dist = []
+requires-python = ">=3.8"
+
+[[tool.uv.dependency-metadata]]
+name = "rpds-py"
+version = "2026.6.3"
+requires-dist = []
+requires-python = ">=3.11"
+
+[build-system]
+requires = ["hatchling>=1.31,<1.32"]
+build-backend = "hatchling.build"

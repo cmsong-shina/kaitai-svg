@@ -1,0 +1,664 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xhtml="http://www.w3.org/1999/xhtml" width="100%" height="100%" tabindex="-1" viewBox="0 0 2270 1756" role="graphics-document" aria-labelledby="diagram-title diagram-desc">
+<title id="diagram-title">SQLite3 database file</title>
+<desc id="diagram-desc">Interactive Kaitai Struct schema. Hover or focus a type or field to read its documentation. Scroll to zoom, drag to pan, and press 0 to reset. Arrows connect a field to the type or enum it uses. Type connections use up to 12 distinct colors, reused after 12 connections.</desc>
+<defs>
+<style><![CDATA[
+svg { background: #f4f7fb; color: #18283e; font-family: 'Segoe UI', 'Noto Sans', 'Malgun Gothic', system-ui, -apple-system, sans-serif; }
+.canvas-bg { fill: #f4f7fb; }
+.diagram-title { font-size: 25px; font-weight: 700; fill: #18283e; }
+.diagram-caption { font-size: 12px; fill: #64758c; }
+.diagram-title, .node-subtitle, .edge-label, .edge-label-halo { font-family: 'Segoe UI', 'Noto Sans', 'Malgun Gothic', system-ui, -apple-system, sans-serif; }
+.node-title, .field-label, .field-type, .field-pos, .field-size, .field-detail, .type-size { font-family: 'Cascadia Mono', Consolas, 'DejaVu Sans Mono', 'Malgun Gothic', monospace; font-variant-ligatures: none; }
+.node-box { fill: #fff; stroke: #cbd5e1; stroke-width: 1.3; filter: url(#card-shadow); }
+.node-header { fill: #edf4fb; }
+.node-kind-enum .node-header { fill: #f2edfc; }
+.node-kind-opaque .node-header { fill: #fff5df; }
+.node-accent { fill: #327dba; }
+.node-kind-enum .node-accent { fill: #8564bd; }
+.node-kind-opaque .node-accent { fill: #b47c17; }
+.node-title { fill: #183b5b; font-size: 17px; font-weight: 700; }
+.node-subtitle { fill: #61748b; font-size: 11px; }
+.size-badge { fill: #fff; stroke: #c9dce9; stroke-width: 1; }
+.size-caption { fill: #657c90; font-size: 9px; font-weight: 600; letter-spacing: .7px; }
+.type-size { fill: #185c84; font-size: 12px; font-weight: 700; }
+.file-group-box { fill: #eaf0f7; fill-opacity: .55; stroke: #b9cbdc; stroke-width: 1.5; stroke-dasharray: 8 4; }
+.file-group-title { fill: #3d5873; font-size: 15px; font-weight: 700; }
+.file-group-count { fill: #6a7d91; font-size: 11px; }
+.section-band { fill: #eaf1f8; }
+.section-kind-instance .section-band { fill: #f0eaf8; }
+.section-kind-param .section-band { fill: #f8f1e3; }
+.section-label { fill: #385870; font-size: 11px; font-weight: 700; }
+.section-count { fill: #718397; font-size: 10px; }
+.table-header { fill: #f8fafc; }
+.table-heading { fill: #6a7b8d; font-size: 11px; font-weight: 600; }
+.column-divider { stroke: #e7edf3; stroke-width: 1; pointer-events: none; }
+.row-hit { fill: transparent; }
+.row-divider { stroke: #e5ebf3; stroke-width: 1; }
+.field-label { font-size: 13px; font-weight: 600; fill: #253b53; }
+.field-type { font-size: 12px; fill: #216a88; }
+.field-pos { font-size: 12px; fill: #677e92; font-variant-numeric: tabular-nums; }
+.field-size { font-size: 12px; font-weight: 600; fill: #185c84; font-variant-numeric: tabular-nums; }
+.field-detail { font-size: 11px; fill: #718096; }
+.row-kind-instance .field-label { fill: #8251a8; }
+.row-kind-param .field-label { fill: #9a6712; }
+.doc-dot { fill: #5987ad; }
+.empty-label { font-size: 11px; font-style: italic; fill: #8995a6; }
+.edge-hit { fill: none; stroke: transparent; stroke-width: 12; pointer-events: stroke; }
+.edge-halo { fill: none; stroke: #f4f7fb; stroke-width: 6; stroke-linejoin: round; pointer-events: none; }
+.edge-path, .legend-path { fill: none; stroke: #6593af; stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; pointer-events: none; }
+.edge-kind-enum .edge-path { stroke: #9a81bc; }
+.edge-kind-import .edge-path, .edge-kind-import .legend-path { stroke: #b66a16; stroke-width: 2; stroke-dasharray: 9 5; }
+.edge-kind-contains .edge-path, .edge-kind-contains .legend-path { stroke: #177d72; stroke-width: 1.8; stroke-dasharray: none; }
+.edge-label, .edge-label-halo { font-size: 11px; fill: #36576d; opacity: 0; pointer-events: none; }
+.edge-label-halo { stroke: #f4f7fb; stroke-width: 4px; stroke-linejoin: round; }
+.legend text { font-size: 11px; fill: #64758c; }
+.port { fill: #6593af; }
+.edge-kind-enum .port { fill: #9a81bc; }
+.edge-kind-import .port { fill: #b66a16; }
+
+svg { touch-action: none; }
+#viewport { user-select: none; -webkit-user-select: none; }
+.node, .edge { outline: none; transition: opacity .12s; }
+.row { outline: none; }
+.row:hover .row-hit, .row:focus .row-hit { fill: #e8f3ff; }
+.node:focus > .node-box, .node.active > .node-box { stroke: #137dc5; stroke-width: 2.5; }
+.node.muted, .edge.muted { opacity: .23; }
+.edge.active .edge-path { stroke-width: 3; }
+.edge.active .edge-label, .edge.active .edge-label-halo { opacity: 1; }
+.controls { display: none; }
+.control { cursor: pointer; outline: none; }
+.control rect { fill: #fff; stroke: #c3cfde; stroke-width: 1; }
+.control:hover rect, .control:focus rect { fill: #dfedfa; stroke: #327dba; }
+.control text { fill: #294a69; font-size: 19px; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+.control .reset-text { font-size: 11px; font-weight: 600; }
+.tooltip-layer { visibility: hidden; }
+.tooltip-box { box-sizing: border-box; background: #172c44; color: #f4f8ff; border: 1px solid #354d68; border-radius: 9px; padding: 13px 16px; box-shadow: 0 5px 18px #10253b33; font: 13px/1.55 'Segoe UI', 'Noto Sans', 'Malgun Gothic', system-ui, -apple-system, sans-serif; white-space: pre-wrap; overflow-wrap: anywhere; overflow: auto; user-select: text; }
+@media (prefers-reduced-motion: reduce) { .node, .edge { transition: none; } }
+
+.type-edge-color-0 .edge-path { stroke: #1768bd; }
+.type-edge-color-0 .port { fill: #1768bd; }
+
+.type-edge-color-1 .edge-path { stroke: #f82818; }
+.type-edge-color-1 .port { fill: #f82818; }
+
+.type-edge-color-2 .edge-path { stroke: #009000; }
+.type-edge-color-2 .port { fill: #009000; }
+
+.type-edge-color-3 .edge-path { stroke: #c840d8; }
+.type-edge-color-3 .port { fill: #c840d8; }
+
+.type-edge-color-4 .edge-path { stroke: #903058; }
+.type-edge-color-4 .port { fill: #903058; }
+
+.type-edge-color-5 .edge-path { stroke: #a07028; }
+.type-edge-color-5 .port { fill: #a07028; }
+
+.type-edge-color-6 .edge-path { stroke: #7800c0; }
+.type-edge-color-6 .port { fill: #7800c0; }
+
+.type-edge-color-7 .edge-path { stroke: #7858ff; }
+.type-edge-color-7 .port { fill: #7858ff; }
+
+.type-edge-color-8 .edge-path { stroke: #b06890; }
+.type-edge-color-8 .port { fill: #b06890; }
+
+.type-edge-color-9 .edge-path { stroke: #089088; }
+.type-edge-color-9 .port { fill: #089088; }
+
+.type-edge-color-10 .edge-path { stroke: #206838; }
+.type-edge-color-10 .port { fill: #206838; }
+
+.type-edge-color-11 .edge-path { stroke: #e00880; }
+.type-edge-color-11 .port { fill: #e00880; }
+]]></style>
+<filter id="card-shadow" x="-10%" y="-10%" width="120%" height="125%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#233e5b" flood-opacity=".07"/></filter>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9 Z" fill="#6593af"/></marker>
+<marker id="arrow-enum" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9 Z" fill="#9a81bc"/></marker>
+<marker id="arrow-type-0" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9 Z" fill="#1768bd"/></marker>
+<marker id="arrow-type-1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9 Z" fill="#f82818"/></marker>
+<marker id="arrow-type-2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9 Z" fill="#009000"/></marker>
+<marker id="arrow-type-3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9 Z" fill="#c840d8"/></marker>
+<marker id="arrow-type-4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9 Z" fill="#903058"/></marker>
+<marker id="arrow-type-5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9 Z" fill="#a07028"/></marker>
+<marker id="arrow-type-6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9 Z" fill="#7800c0"/></marker>
+<marker id="arrow-type-7" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9 Z" fill="#7858ff"/></marker>
+<marker id="arrow-type-8" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9 Z" fill="#b06890"/></marker>
+<marker id="arrow-type-9" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9 Z" fill="#089088"/></marker>
+<marker id="arrow-type-10" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9 Z" fill="#206838"/></marker>
+<marker id="arrow-type-11" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9 Z" fill="#e00880"/></marker>
+<marker id="arrow-import" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M2 2 L10 6 L2 10" fill="none" stroke="#b66a16" stroke-width="1.8" stroke-linejoin="round"/></marker>
+<marker id="diamond-contains" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M1 6 L6 1 L11 6 L6 11 Z" fill="#f4f7fb" stroke="#177d72" stroke-width="1.5" stroke-linejoin="round"/></marker>
+</defs>
+<rect class="canvas-bg" width="2270" height="1756"/>
+<g id="viewport">
+<text class="diagram-title" x="64" y="43">SQLite3 database file</text>
+<text class="diagram-caption" x="64" y="65">13 definitions · 16 connections</text>
+<text class="diagram-caption" x="64" y="85">pos: byte.bit · B/bit · Hover/Tab: docs · Wheel: zoom · Drag: pan</text>
+<g class="legend" aria-label="Connection types">
+<g><title>Type connections: up to 12 distinct colors; colors repeat after 12.</title><path d="M64 106 h8" fill="none" stroke="#1768bd" stroke-width="2.4"/><path d="M72 106 h8" fill="none" stroke="#f82818" stroke-width="2.4"/><path d="M80 106 h8" fill="none" stroke="#009000" stroke-width="2.4"/><text x="94" y="110">Type</text></g>
+<path d="M141 106 H165" fill="none" stroke="#9a81bc" stroke-width="1.8"/><text x="171" y="110">Enum</text>
+</g>
+<g class="file-group" data-source-file="sqlite3.ksy" role="group" aria-label="sqlite3.ksy" transform="translate(64 132)">
+<rect class="file-group-box" width="2118" height="1536" rx="14"/>
+<text class="file-group-title" x="24" y="26">sqlite3.ksy</text>
+<text class="file-group-count" x="2094" y="26" text-anchor="end">13 definitions</text>
+</g>
+<g class="edges">
+<g class="edge edge-kind-enum" data-source="node-0" data-target="node-1" data-source-row="/seq/2" role="group" aria-label="sqlite3 → sqlite3::versions
+
+enum" tabindex="0" data-tooltip="sqlite3 → sqlite3::versions&#10;&#10;enum"><title>sqlite3 → sqlite3::versions
+
+enum</title><path class="edge-hit" d="M648 363.5 L792 363.5 L792 659 L1537 659 L1537 1448 L1591 1448"/><path class="edge-halo" d="M648 363.5 L792 363.5 L792 659 L1537 659 L1537 1448 L1591 1448"/><path class="edge-path" data-source="node-0" data-target="node-1" data-source-row="/seq/2" d="M648 363.5 L792 363.5 L792 659 L1537 659 L1537 1448 L1591 1448" marker-end="url(#arrow-enum)"/><circle class="port" cx="648" cy="363.5" r="2.8"/><text class="edge-label-halo" x="1164.5" y="653" text-anchor="middle" aria-hidden="true">enum</text><text class="edge-label" x="1164.5" y="653" text-anchor="middle">enum</text></g>
+<g class="edge edge-kind-enum" data-source="node-0" data-target="node-1" data-source-row="/seq/3" role="group" aria-label="sqlite3 → sqlite3::versions
+
+enum" tabindex="0" data-tooltip="sqlite3 → sqlite3::versions&#10;&#10;enum"><title>sqlite3 → sqlite3::versions
+
+enum</title><path class="edge-hit" d="M648 402.5 L756 402.5 L756 1258 L1388 1258 L1388 1460 L1591 1460"/><path class="edge-halo" d="M648 402.5 L756 402.5 L756 1258 L1388 1258 L1388 1460 L1591 1460"/><path class="edge-path" data-source="node-0" data-target="node-1" data-source-row="/seq/3" d="M648 402.5 L756 402.5 L756 1258 L1388 1258 L1388 1460 L1591 1460" marker-end="url(#arrow-enum)"/><circle class="port" cx="648" cy="402.5" r="2.8"/><text class="edge-label-halo" x="1072" y="1252" text-anchor="middle" aria-hidden="true">enum</text><text class="edge-label" x="1072" y="1252" text-anchor="middle">enum</text></g>
+<g class="edge edge-kind-enum" data-source="node-0" data-target="node-2" data-source-row="/seq/16" role="group" aria-label="sqlite3 → sqlite3::encodings
+
+enum" tabindex="0" data-tooltip="sqlite3 → sqlite3::encodings&#10;&#10;enum"><title>sqlite3 → sqlite3::encodings
+
+enum</title><path class="edge-hit" d="M648 753.5 L702 753.5 L702 1303 L828 1303"/><path class="edge-halo" d="M648 753.5 L702 753.5 L702 1303 L828 1303"/><path class="edge-path" data-source="node-0" data-target="node-2" data-source-row="/seq/16" d="M648 753.5 L702 753.5 L702 1303 L828 1303" marker-end="url(#arrow-enum)"/><circle class="port" cx="648" cy="753.5" r="2.8"/><text class="edge-label-halo" transform="translate(696 1028.25) rotate(-90)" text-anchor="middle" aria-hidden="true">enum</text><text class="edge-label" transform="translate(696 1028.25) rotate(-90)" text-anchor="middle">enum</text></g>
+<g class="edge edge-kind-type type-edge-color-0" data-source="node-0" data-target="node-3" data-source-row="/seq/23" role="group" aria-label="sqlite3 → sqlite3::btree_page
+
+type" tabindex="0" data-tooltip="sqlite3 → sqlite3::btree_page&#10;&#10;type"><title>sqlite3 → sqlite3::btree_page
+
+type</title><path class="edge-hit" d="M648 942 L684 942 L684 653 L1537 653 L1537 204.5 L1591 204.5"/><path class="edge-halo" d="M648 942 L684 942 L684 653 L1537 653 L1537 204.5 L1591 204.5"/><path class="edge-path" data-source="node-0" data-target="node-3" data-source-row="/seq/23" d="M648 942 L684 942 L684 653 L1537 653 L1537 204.5 L1591 204.5" marker-end="url(#arrow-type-0)"/><circle class="port" cx="648" cy="942" r="2.8"/></g>
+<g class="edge edge-kind-type type-edge-color-3" data-source="node-3" data-target="node-4" data-source-row="/seq/6" role="group" aria-label="sqlite3::btree_page → sqlite3::ref_cell
+
+type" tabindex="0" data-tooltip="sqlite3::btree_page → sqlite3::ref_cell&#10;&#10;type"><title>sqlite3::btree_page → sqlite3::ref_cell
+
+type</title><path class="edge-hit" d="M2151 475.5 L2169 475.5 L2169 873 L1573 873 L1573 919.5 L1591 919.5"/><path class="edge-halo" d="M2151 475.5 L2169 475.5 L2169 873 L1573 873 L1573 919.5 L1591 919.5"/><path class="edge-path" data-source="node-3" data-target="node-4" data-source-row="/seq/6" d="M2151 475.5 L2169 475.5 L2169 873 L1573 873 L1573 919.5 L1591 919.5" marker-end="url(#arrow-type-3)"/><circle class="port" cx="2151" cy="475.5" r="2.8"/></g>
+<g class="edge edge-kind-type type-edge-color-4" data-source="node-4" data-target="node-5" data-source-row="/instances/body" role="group" aria-label="sqlite3::ref_cell → sqlite3::cell_table_leaf
+
+13" tabindex="0" data-tooltip="sqlite3::ref_cell → sqlite3::cell_table_leaf&#10;&#10;13"><title>sqlite3::ref_cell → sqlite3::cell_table_leaf
+
+13</title><path class="edge-hit" d="M2158 1078 L2176 1078 L2176 867 L1465 867 L1465 997 L810 997 L810 1043.5 L828 1043.5"/><path class="edge-halo" d="M2158 1078 L2176 1078 L2176 867 L1465 867 L1465 997 L810 997 L810 1043.5 L828 1043.5"/><path class="edge-path" data-source="node-4" data-target="node-5" data-source-row="/instances/body" d="M2158 1078 L2176 1078 L2176 867 L1465 867 L1465 997 L810 997 L810 1043.5 L828 1043.5" marker-end="url(#arrow-type-4)"/><circle class="port" cx="2158" cy="1078" r="2.8"/><text class="edge-label-halo" x="1820.5" y="861" text-anchor="middle" aria-hidden="true">13</text><text class="edge-label" x="1820.5" y="861" text-anchor="middle">13</text></g>
+<g class="edge edge-kind-type type-edge-color-5" data-source="node-4" data-target="node-6" data-source-row="/instances/body" role="group" aria-label="sqlite3::ref_cell → sqlite3::cell_table_interior
+
+5" tabindex="0" data-tooltip="sqlite3::ref_cell → sqlite3::cell_table_interior&#10;&#10;5"><title>sqlite3::ref_cell → sqlite3::cell_table_interior
+
+5</title><path class="edge-hit" d="M2158 1132 L2188 1132 L2188 1662 L70 1662 L70 1377.5 L88 1377.5"/><path class="edge-halo" d="M2158 1132 L2188 1132 L2188 1662 L70 1662 L70 1377.5 L88 1377.5"/><path class="edge-path" data-source="node-4" data-target="node-6" data-source-row="/instances/body" d="M2158 1132 L2188 1132 L2188 1662 L70 1662 L70 1377.5 L88 1377.5" marker-end="url(#arrow-type-5)"/><circle class="port" cx="2158" cy="1132" r="2.8"/><text class="edge-label-halo" x="1129" y="1656" text-anchor="middle" aria-hidden="true">5</text><text class="edge-label" x="1129" y="1656" text-anchor="middle">5</text></g>
+<g class="edge edge-kind-type type-edge-color-6" data-source="node-4" data-target="node-7" data-source-row="/instances/body" role="group" aria-label="sqlite3::ref_cell → sqlite3::cell_index_leaf
+
+10" tabindex="0" data-tooltip="sqlite3::ref_cell → sqlite3::cell_index_leaf&#10;&#10;10"><title>sqlite3::ref_cell → sqlite3::cell_index_leaf
+
+10</title><path class="edge-hit" d="M2158 1114 L2176 1114 L2176 1174 L1573 1174 L1573 1220.5 L1591 1220.5"/><path class="edge-halo" d="M2158 1114 L2176 1114 L2176 1174 L1573 1174 L1573 1220.5 L1591 1220.5"/><path class="edge-path" data-source="node-4" data-target="node-7" data-source-row="/instances/body" d="M2158 1114 L2176 1114 L2176 1174 L1573 1174 L1573 1220.5 L1591 1220.5" marker-end="url(#arrow-type-6)"/><circle class="port" cx="2158" cy="1114" r="2.8"/><text class="edge-label-halo" x="1874.5" y="1168" text-anchor="middle" aria-hidden="true">10</text><text class="edge-label" x="1874.5" y="1168" text-anchor="middle">10</text></g>
+<g class="edge edge-kind-type type-edge-color-7" data-source="node-4" data-target="node-8" data-source-row="/instances/body" role="group" aria-label="sqlite3::ref_cell → sqlite3::cell_index_interior
+
+2" tabindex="0" data-tooltip="sqlite3::ref_cell → sqlite3::cell_index_interior&#10;&#10;2"><title>sqlite3::ref_cell → sqlite3::cell_index_interior
+
+2</title><path class="edge-hit" d="M2158 1096 L2198 1096 L2198 1674 L58 1674 L58 1116.5 L88 1116.5"/><path class="edge-halo" d="M2158 1096 L2198 1096 L2198 1674 L58 1674 L58 1116.5 L88 1116.5"/><path class="edge-path" data-source="node-4" data-target="node-8" data-source-row="/instances/body" d="M2158 1096 L2198 1096 L2198 1674 L58 1674 L58 1116.5 L88 1116.5" marker-end="url(#arrow-type-7)"/><circle class="port" cx="2158" cy="1096" r="2.8"/><text class="edge-label-halo" x="1128" y="1668" text-anchor="middle" aria-hidden="true">2</text><text class="edge-label" x="1128" y="1668" text-anchor="middle">2</text></g>
+<g class="edge edge-kind-type type-edge-color-8" data-source="node-5" data-target="node-9" data-source-row="/seq/2" role="group" aria-label="sqlite3::cell_table_leaf → sqlite3::cell_payload
+
+type" tabindex="0" data-tooltip="sqlite3::cell_table_leaf → sqlite3::cell_payload&#10;&#10;type"><title>sqlite3::cell_table_leaf → sqlite3::cell_payload
+
+type</title><path class="edge-hit" d="M1388 1199 L1406 1199 L1406 1246 L792 1246 L792 693.5 L828 693.5"/><path class="edge-halo" d="M1388 1199 L1406 1199 L1406 1246 L792 1246 L792 693.5 L828 693.5"/><path class="edge-path" data-source="node-5" data-target="node-9" data-source-row="/seq/2" d="M1388 1199 L1406 1199 L1406 1246 L792 1246 L792 693.5 L828 693.5" marker-end="url(#arrow-type-8)"/><circle class="port" cx="1388" cy="1199" r="2.8"/></g>
+<g class="edge edge-kind-type type-edge-color-9" data-source="node-7" data-target="node-9" data-source-row="/seq/1" role="group" aria-label="sqlite3::cell_index_leaf → sqlite3::cell_payload
+
+type" tabindex="0" data-tooltip="sqlite3::cell_index_leaf → sqlite3::cell_payload&#10;&#10;type"><title>sqlite3::cell_index_leaf → sqlite3::cell_payload
+
+type</title><path class="edge-hit" d="M2151 1350 L2169 1350 L2169 1397 L1411 1397 L1411 985 L810 985 L810 717.5 L828 717.5"/><path class="edge-halo" d="M2151 1350 L2169 1350 L2169 1397 L1411 1397 L1411 985 L810 985 L810 717.5 L828 717.5"/><path class="edge-path" data-source="node-7" data-target="node-9" data-source-row="/seq/1" d="M2151 1350 L2169 1350 L2169 1397 L1411 1397 L1411 985 L810 985 L810 717.5 L828 717.5" marker-end="url(#arrow-type-9)"/><circle class="port" cx="2151" cy="1350" r="2.8"/></g>
+<g class="edge edge-kind-type type-edge-color-10" data-source="node-8" data-target="node-9" data-source-row="/seq/2" role="group" aria-label="sqlite3::cell_index_interior → sqlite3::cell_payload
+
+type" tabindex="0" data-tooltip="sqlite3::cell_index_interior → sqlite3::cell_payload&#10;&#10;type"><title>sqlite3::cell_index_interior → sqlite3::cell_payload
+
+type</title><path class="edge-hit" d="M648 1272 L720 1272 L720 705.5 L828 705.5"/><path class="edge-halo" d="M648 1272 L720 1272 L720 705.5 L828 705.5"/><path class="edge-path" data-source="node-8" data-target="node-9" data-source-row="/seq/2" d="M648 1272 L720 1272 L720 705.5 L828 705.5" marker-end="url(#arrow-type-10)"/><circle class="port" cx="648" cy="1272" r="2.8"/></g>
+<g class="edge edge-kind-type type-edge-color-11" data-source="node-9" data-target="node-10" data-source-row="/seq/1" role="group" aria-label="sqlite3::cell_payload → sqlite3::serials
+
+type" tabindex="0" data-tooltip="sqlite3::cell_payload → sqlite3::serials&#10;&#10;type"><title>sqlite3::cell_payload → sqlite3::serials
+
+type</title><path class="edge-hit" d="M1411 843 L1429 843 L1429 1484 L810 1484 L810 1530.5 L828 1530.5"/><path class="edge-halo" d="M1411 843 L1429 843 L1429 1484 L810 1484 L810 1530.5 L828 1530.5"/><path class="edge-path" data-source="node-9" data-target="node-10" data-source-row="/seq/1" d="M1411 843 L1429 843 L1429 1484 L810 1484 L810 1530.5 L828 1530.5" marker-end="url(#arrow-type-11)"/><circle class="port" cx="1411" cy="843" r="2.8"/></g>
+<g class="edge edge-kind-type type-edge-color-0" data-source="node-9" data-target="node-12" data-source-row="/seq/2" role="group" aria-label="sqlite3::cell_payload → sqlite3::column_content
+
+type" tabindex="0" data-tooltip="sqlite3::cell_payload → sqlite3::column_content&#10;&#10;type"><title>sqlite3::cell_payload → sqlite3::column_content
+
+type</title><path class="edge-hit" d="M1411 923.5 L1447 923.5 L1447 647 L810 647 L810 204.5 L828 204.5"/><path class="edge-halo" d="M1411 923.5 L1447 923.5 L1447 647 L810 647 L810 204.5 L828 204.5"/><path class="edge-path" data-source="node-9" data-target="node-12" data-source-row="/seq/2" d="M1411 923.5 L1447 923.5 L1447 647 L810 647 L810 204.5 L828 204.5" marker-end="url(#arrow-type-0)"/><circle class="port" cx="1411" cy="923.5" r="2.8"/></g>
+<g class="edge edge-kind-type type-edge-color-1" data-source="node-10" data-target="node-11" data-source-row="/seq/0" role="group" aria-label="sqlite3::serials → sqlite3::serial
+
+type" tabindex="0" data-tooltip="sqlite3::serials → sqlite3::serial&#10;&#10;type"><title>sqlite3::serials → sqlite3::serial
+
+type</title><path class="edge-hit" d="M1388 1624.5 L1555 1624.5 L1555 585.5 L1591 585.5"/><path class="edge-halo" d="M1388 1624.5 L1555 1624.5 L1555 585.5 L1591 585.5"/><path class="edge-path" data-source="node-10" data-target="node-11" data-source-row="/seq/0" d="M1388 1624.5 L1555 1624.5 L1555 585.5 L1591 585.5" marker-end="url(#arrow-type-1)"/><circle class="port" cx="1388" cy="1624.5" r="2.8"/></g>
+<g class="edge edge-kind-type type-edge-color-2" data-source="node-12" data-target="node-11" data-source-row="/params/0" role="group" aria-label="sqlite3::column_content → sqlite3::serial
+
+type" tabindex="0" data-tooltip="sqlite3::column_content → sqlite3::serial&#10;&#10;type"><title>sqlite3::column_content → sqlite3::serial
+
+type</title><path class="edge-hit" d="M1401 292 L1573 292 L1573 573.5 L1591 573.5"/><path class="edge-halo" d="M1401 292 L1573 292 L1573 573.5 L1591 573.5"/><path class="edge-path" data-source="node-12" data-target="node-11" data-source-row="/params/0" d="M1401 292 L1573 292 L1573 573.5 L1591 573.5" marker-end="url(#arrow-type-2)"/><circle class="port" cx="1401" cy="292" r="2.8"/></g>
+</g><g class="nodes">
+<g class="file-nodes" data-source-file="sqlite3.ksy">
+<g class="node node-kind-type" id="node-0" data-node-id="node-0" data-source-file="sqlite3.ksy" data-size="?" role="group" aria-label="sqlite3" tabindex="0" data-tooltip="sqlite3&#10;&#10;SQLite3 is a popular serverless SQL engine, implemented as a library&#10;to be used within other applications. It keeps its databases as&#10;regular disk files.&#10;&#10;Every database file is segmented into pages. First page (starting at&#10;the very beginning) is special: it contains a file-global header&#10;which specifies some data relevant to proper parsing (i.e. format&#10;versions, size of page, etc). After the header, normal contents of&#10;the first page follow.&#10;&#10;Each page would be of some type, and generally, they would be&#10;reached via the links starting from the first page. First page type&#10;(`root_page`) is always &quot;btree_page&quot;.&#10;&#10;&#10;sqlite3.ksy · endian: be&#10;&#10;Sequence size: ?" transform="translate(88 176)"><title>sqlite3
+
+SQLite3 is a popular serverless SQL engine, implemented as a library
+to be used within other applications. It keeps its databases as
+regular disk files.
+
+Every database file is segmented into pages. First page (starting at
+the very beginning) is special: it contains a file-global header
+which specifies some data relevant to proper parsing (i.e. format
+versions, size of page, etc). After the header, normal contents of
+the first page follow.
+
+Each page would be of some type, and generally, they would be
+reached via the links starting from the first page. First page type
+(`root_page`) is always &quot;btree_page&quot;.
+
+
+sqlite3.ksy · endian: be
+
+Sequence size: ?</title><rect class="node-box" width="560" height="864" rx="10"/><path class="node-header" d="M10 0 H550 Q560 0 560 10 V57 H0 V10 Q0 0 10 0 Z"/><rect class="node-accent" x="0" y="12" width="4" height="33" rx="2"/><text class="node-title" x="16" y="24">sqlite3</text><text class="node-subtitle" x="16" y="44">sqlite3.ksy · endian: be</text><rect class="size-badge" x="420" y="10" width="124" height="39" rx="5"/><text class="size-caption" x="430" y="22">SEQ SIZE</text><text class="type-size" x="430" y="38">?</text><g class="section section-kind-field" data-section-kind="seq" role="group" aria-label="seq"><rect class="section-band" y="57" width="560" height="24"/><text class="section-label" x="16" y="73">seq</text><text class="section-count" x="544" y="73" text-anchor="end">24 entries</text><rect class="table-header" y="81" width="560" height="22"/><text class="table-heading" data-column="pos" x="16" y="96">pos</text><text class="table-heading" data-column="size" x="74" y="96">size</text><text class="table-heading" data-column="type" x="144" y="96">type</text><text class="table-heading" data-column="id" x="310" y="96">id</text><g class="row row-kind-field" id="node-0-row-0" data-row-id="/seq/0" data-row-kind="field" data-pos="0" data-size="16 B" role="group" aria-label="magic: bytes" tabindex="0" data-tooltip="magic&#10;&#10;bytes&#10;&#10;contents: [&quot;SQLite format 3&quot;, 0]" transform="translate(0 103)"><title>magic
+
+bytes
+
+contents: [&quot;SQLite format 3&quot;, 0]</title><rect class="row-hit" width="560" height="39"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">0</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="124"><text class="field-size" x="74" y="18">16 B</text></g><path class="column-divider" d="M64 0 V26"/><g class="table-cell" data-column="type" data-cell-left="144" data-cell-right="290"><text class="field-type" x="144" y="18">bytes</text></g><path class="column-divider" d="M134 0 V26"/><g class="table-cell" data-column="id" data-cell-left="310" data-cell-right="544"><text class="field-label" x="310" y="18">magic</text></g><path class="column-divider" d="M300 0 V26"/><text class="field-detail" x="16" y="34">contents: [&quot;SQLite format 3&quot;, 0]</text></g><g class="row row-kind-field" id="node-0-row-1" data-row-id="/seq/1" data-row-kind="field" data-pos="16" data-size="2 B" role="group" aria-label="len_page_mod: u2" tabindex="0" data-tooltip="len_page_mod&#10;&#10;u2&#10;&#10;The database page size in bytes. Must be a power of two between&#10;512 and 32768 inclusive, or the value 1 representing a page size&#10;of 65536.&#10;" transform="translate(0 142)"><title>len_page_mod
+
+u2
+
+The database page size in bytes. Must be a power of two between
+512 and 32768 inclusive, or the value 1 representing a page size
+of 65536.
+</title><rect class="row-hit" width="560" height="26"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">16</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="124"><text class="field-size" x="74" y="18">2 B</text></g><path class="column-divider" d="M64 0 V26"/><g class="table-cell" data-column="type" data-cell-left="144" data-cell-right="290"><text class="field-type" x="144" y="18">u2</text></g><path class="column-divider" d="M134 0 V26"/><g class="table-cell" data-column="id" data-cell-left="310" data-cell-right="544"><text class="field-label" x="310" y="18">len_page_mod</text></g><path class="column-divider" d="M300 0 V26"/><circle class="doc-dot" cx="553" cy="15" r="2.3" aria-hidden="true"/></g><g class="row row-kind-field" id="node-0-row-2" data-row-id="/seq/2" data-row-kind="field" data-pos="18" data-size="1 B" role="group" aria-label="write_version: u1" tabindex="0" data-tooltip="write_version&#10;&#10;u1&#10;&#10;enum: versions" transform="translate(0 168)"><title>write_version
+
+u1
+
+enum: versions</title><rect class="row-hit" width="560" height="39"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">18</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="124"><text class="field-size" x="74" y="18">1 B</text></g><path class="column-divider" d="M64 0 V26"/><g class="table-cell" data-column="type" data-cell-left="144" data-cell-right="290"><text class="field-type" x="144" y="18">u1</text></g><path class="column-divider" d="M134 0 V26"/><g class="table-cell" data-column="id" data-cell-left="310" data-cell-right="544"><text class="field-label" x="310" y="18">write_version</text></g><path class="column-divider" d="M300 0 V26"/><text class="field-detail" x="16" y="34">enum: versions</text></g><g class="row row-kind-field" id="node-0-row-3" data-row-id="/seq/3" data-row-kind="field" data-pos="19" data-size="1 B" role="group" aria-label="read_version: u1" tabindex="0" data-tooltip="read_version&#10;&#10;u1&#10;&#10;enum: versions" transform="translate(0 207)"><title>read_version
+
+u1
+
+enum: versions</title><rect class="row-hit" width="560" height="39"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">19</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="124"><text class="field-size" x="74" y="18">1 B</text></g><path class="column-divider" d="M64 0 V26"/><g class="table-cell" data-column="type" data-cell-left="144" data-cell-right="290"><text class="field-type" x="144" y="18">u1</text></g><path class="column-divider" d="M134 0 V26"/><g class="table-cell" data-column="id" data-cell-left="310" data-cell-right="544"><text class="field-label" x="310" y="18">read_version</text></g><path class="column-divider" d="M300 0 V26"/><text class="field-detail" x="16" y="34">enum: versions</text></g><g class="row row-kind-field" id="node-0-row-4" data-row-id="/seq/4" data-row-kind="field" data-pos="20" data-size="1 B" role="group" aria-label="reserved_space: u1" tabindex="0" data-tooltip="reserved_space&#10;&#10;u1&#10;&#10;Bytes of unused &quot;reserved&quot; space at the end of each page. Usually 0." transform="translate(0 246)"><title>reserved_space
+
+u1
+
+Bytes of unused &quot;reserved&quot; space at the end of each page. Usually 0.</title><rect class="row-hit" width="560" height="26"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">20</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="124"><text class="field-size" x="74" y="18">1 B</text></g><path class="column-divider" d="M64 0 V26"/><g class="table-cell" data-column="type" data-cell-left="144" data-cell-right="290"><text class="field-type" x="144" y="18">u1</text></g><path class="column-divider" d="M134 0 V26"/><g class="table-cell" data-column="id" data-cell-left="310" data-cell-right="544"><text class="field-label" x="310" y="18">reserved_space</text></g><path class="column-divider" d="M300 0 V26"/><circle class="doc-dot" cx="553" cy="15" r="2.3" aria-hidden="true"/></g><g class="row row-kind-field" id="node-0-row-5" data-row-id="/seq/5" data-row-kind="field" data-pos="21" data-size="1 B" role="group" aria-label="max_payload_frac: u1" tabindex="0" data-tooltip="max_payload_frac&#10;&#10;u1&#10;&#10;Maximum embedded payload fraction. Must be 64." transform="translate(0 272)"><title>max_payload_frac
+
+u1
+
+Maximum embedded payload fraction. Must be 64.</title><rect class="row-hit" width="560" height="26"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">21</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="124"><text class="field-size" x="74" y="18">1 B</text></g><path class="column-divider" d="M64 0 V26"/><g class="table-cell" data-column="type" data-cell-left="144" data-cell-right="290"><text class="field-type" x="144" y="18">u1</text></g><path class="column-divider" d="M134 0 V26"/><g class="table-cell" data-column="id" data-cell-left="310" data-cell-right="544"><text class="field-label" x="310" y="18">max_payload_frac</text></g><path class="column-divider" d="M300 0 V26"/><circle class="doc-dot" cx="553" cy="15" r="2.3" aria-hidden="true"/></g><g class="row row-kind-field" id="node-0-row-6" data-row-id="/seq/6" data-row-kind="field" data-pos="22" data-size="1 B" role="group" aria-label="min_payload_frac: u1" tabindex="0" data-tooltip="min_payload_frac&#10;&#10;u1&#10;&#10;Minimum embedded payload fraction. Must be 32." transform="translate(0 298)"><title>min_payload_frac
+
+u1
+
+Minimum embedded payload fraction. Must be 32.</title><rect class="row-hit" width="560" height="26"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">22</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="124"><text class="field-size" x="74" y="18">1 B</text></g><path class="column-divider" d="M64 0 V26"/><g class="table-cell" data-column="type" data-cell-left="144" data-cell-right="290"><text class="field-type" x="144" y="18">u1</text></g><path class="column-divider" d="M134 0 V26"/><g class="table-cell" data-column="id" data-cell-left="310" data-cell-right="544"><text class="field-label" x="310" y="18">min_payload_frac</text></g><path class="column-divider" d="M300 0 V26"/><circle class="doc-dot" cx="553" cy="15" r="2.3" aria-hidden="true"/></g><g class="row row-kind-field" id="node-0-row-7" data-row-id="/seq/7" data-row-kind="field" data-pos="23" data-size="1 B" role="group" aria-label="leaf_payload_frac: u1" tabindex="0" data-tooltip="leaf_payload_frac&#10;&#10;u1&#10;&#10;Leaf payload fraction. Must be 32." transform="translate(0 324)"><title>leaf_payload_frac
+
+u1
+
+Leaf payload fraction. Must be 32.</title><rect class="row-hit" width="560" height="26"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">23</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="124"><text class="field-size" x="74" y="18">1 B</text></g><path class="column-divider" d="M64 0 V26"/><g class="table-cell" data-column="type" data-cell-left="144" data-cell-right="290"><text class="field-type" x="144" y="18">u1</text></g><path class="column-divider" d="M134 0 V26"/><g class="table-cell" data-column="id" data-cell-left="310" data-cell-right="544"><text class="field-label" x="310" y="18">leaf_payload_frac</text></g><path class="column-divider" d="M300 0 V26"/><circle class="doc-dot" cx="553" cy="15" r="2.3" aria-hidden="true"/></g><g class="row row-kind-field" id="node-0-row-8" data-row-id="/seq/8" data-row-kind="field" data-pos="24" data-size="4 B" role="group" aria-label="file_change_counter: u4" tabindex="0" data-tooltip="file_change_counter&#10;&#10;u4" transform="translate(0 350)"><title>file_change_counter
+
+u4</title><rect class="row-hit" width="560" height="26"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">24</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="124"><text class="field-size" x="74" y="18">4 B</text></g><path class="column-divider" d="M64 0 V26"/><g class="table-cell" data-column="type" data-cell-left="144" data-cell-right="290"><text class="field-type" x="144" y="18">u4</text></g><path class="column-divider" d="M134 0 V26"/><g class="table-cell" data-column="id" data-cell-left="310" data-cell-right="544"><text class="field-label" x="310" y="18">file_change_counter</text></g><path class="column-divider" d="M300 0 V26"/></g><g class="row row-kind-field" id="node-0-row-9" data-row-id="/seq/9" data-row-kind="field" data-pos="28" data-size="4 B" role="group" aria-label="num_pages: u4" tabindex="0" data-tooltip="num_pages&#10;&#10;u4&#10;&#10;Size of the database file in pages. The &quot;in-header database size&quot;." transform="translate(0 376)"><title>num_pages
+
+u4
+
+Size of the database file in pages. The &quot;in-header database size&quot;.</title><rect class="row-hit" width="560" height="26"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">28</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="124"><text class="field-size" x="74" y="18">4 B</text></g><path class="column-divider" d="M64 0 V26"/><g class="table-cell" data-column="type" data-cell-left="144" data-cell-right="290"><text class="field-type" x="144" y="18">u4</text></g><path class="column-divider" d="M134 0 V26"/><g class="table-cell" data-column="id" data-cell-left="310" data-cell-right="544"><text class="field-label" x="310" y="18">num_pages</text></g><path class="column-divider" d="M300 0 V26"/><circle class="doc-dot" cx="553" cy="15" r="2.3" aria-hidden="true"/></g><g class="row row-kind-field" id="node-0-row-10" data-row-id="/seq/10" data-row-kind="field" data-pos="32" data-size="4 B" role="group" aria-label="first_freelist_trunk_page: u4" tabindex="0" data-tooltip="first_freelist_trunk_page&#10;&#10;u4&#10;&#10;Page number of the first freelist trunk page." transform="translate(0 402)"><title>first_freelist_trunk_page
+
+u4
+
+Page number of the first freelist trunk page.</title><rect class="row-hit" width="560" height="26"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">32</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="124"><text class="field-size" x="74" y="18">4 B</text></g><path class="column-divider" d="M64 0 V26"/><g class="table-cell" data-column="type" data-cell-left="144" data-cell-right="290"><text class="field-type" x="144" y="18">u4</text></g><path class="column-divider" d="M134 0 V26"/><g class="table-cell" data-column="id" data-cell-left="310" data-cell-right="544"><text class="field-label" x="310" y="18">first_freelist_trunk_page</text></g><path class="column-divider" d="M300 0 V26"/><circle class="doc-dot" cx="553" cy="15" r="2.3" aria-hidden="true"/></g><g class="row row-kind-field" id="node-0-row-11" data-row-id="/seq/11" data-row-kind="field" data-pos="36" data-size="4 B" role="group" aria-label="num_freelist_pages: u4" tabindex="0" data-tooltip="num_freelist_pages&#10;&#10;u4&#10;&#10;Total number of freelist pages." transform="translate(0 428)"><title>num_freelist_pages
+
+u4
+
+Total number of freelist pages.</title><rect class="row-hit" width="560" height="26"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">36</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="124"><text class="field-size" x="74" y="18">4 B</text></g><path class="column-divider" d="M64 0 V26"/><g class="table-cell" data-column="type" data-cell-left="144" data-cell-right="290"><text class="field-type" x="144" y="18">u4</text></g><path class="column-divider" d="M134 0 V26"/><g class="table-cell" data-column="id" data-cell-left="310" data-cell-right="544"><text class="field-label" x="310" y="18">num_freelist_pages</text></g><path class="column-divider" d="M300 0 V26"/><circle class="doc-dot" cx="553" cy="15" r="2.3" aria-hidden="true"/></g><g class="row row-kind-field" id="node-0-row-12" data-row-id="/seq/12" data-row-kind="field" data-pos="40" data-size="4 B" role="group" aria-label="schema_cookie: u4" tabindex="0" data-tooltip="schema_cookie&#10;&#10;u4" transform="translate(0 454)"><title>schema_cookie
+
+u4</title><rect class="row-hit" width="560" height="26"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">40</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="124"><text class="field-size" x="74" y="18">4 B</text></g><path class="column-divider" d="M64 0 V26"/><g class="table-cell" data-column="type" data-cell-left="144" data-cell-right="290"><text class="field-type" x="144" y="18">u4</text></g><path class="column-divider" d="M134 0 V26"/><g class="table-cell" data-column="id" data-cell-left="310" data-cell-right="544"><text class="field-label" x="310" y="18">schema_cookie</text></g><path class="column-divider" d="M300 0 V26"/></g><g class="row row-kind-field" id="node-0-row-13" data-row-id="/seq/13" data-row-kind="field" data-pos="44" data-size="4 B" role="group" aria-label="schema_format: u4" tabindex="0" data-tooltip="schema_format&#10;&#10;u4&#10;&#10;The schema format number. Supported schema formats are 1, 2, 3, and 4." transform="translate(0 480)"><title>schema_format
+
+u4
+
+The schema format number. Supported schema formats are 1, 2, 3, and 4.</title><rect class="row-hit" width="560" height="26"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">44</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="124"><text class="field-size" x="74" y="18">4 B</text></g><path class="column-divider" d="M64 0 V26"/><g class="table-cell" data-column="type" data-cell-left="144" data-cell-right="290"><text class="field-type" x="144" y="18">u4</text></g><path class="column-divider" d="M134 0 V26"/><g class="table-cell" data-column="id" data-cell-left="310" data-cell-right="544"><text class="field-label" x="310" y="18">schema_format</text></g><path class="column-divider" d="M300 0 V26"/><circle class="doc-dot" cx="553" cy="15" r="2.3" aria-hidden="true"/></g><g class="row row-kind-field" id="node-0-row-14" data-row-id="/seq/14" data-row-kind="field" data-pos="48" data-size="4 B" role="group" aria-label="def_page_cache_size: u4" tabindex="0" data-tooltip="def_page_cache_size&#10;&#10;u4&#10;&#10;Default page cache size." transform="translate(0 506)"><title>def_page_cache_size
+
+u4
+
+Default page cache size.</title><rect class="row-hit" width="560" height="26"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">48</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="124"><text class="field-size" x="74" y="18">4 B</text></g><path class="column-divider" d="M64 0 V26"/><g class="table-cell" data-column="type" data-cell-left="144" data-cell-right="290"><text class="field-type" x="144" y="18">u4</text></g><path class="column-divider" d="M134 0 V26"/><g class="table-cell" data-column="id" data-cell-left="310" data-cell-right="544"><text class="field-label" x="310" y="18">def_page_cache_size</text></g><path class="column-divider" d="M300 0 V26"/><circle class="doc-dot" cx="553" cy="15" r="2.3" aria-hidden="true"/></g><g class="row row-kind-field" id="node-0-row-15" data-row-id="/seq/15" data-row-kind="field" data-pos="52" data-size="4 B" role="group" aria-label="largest_root_page: u4" tabindex="0" data-tooltip="largest_root_page&#10;&#10;u4&#10;&#10;The page number of the largest root b-tree page when in auto-vacuum or incremental-vacuum modes, or zero otherwise." transform="translate(0 532)"><title>largest_root_page
+
+u4
+
+The page number of the largest root b-tree page when in auto-vacuum or incremental-vacuum modes, or zero otherwise.</title><rect class="row-hit" width="560" height="26"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">52</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="124"><text class="field-size" x="74" y="18">4 B</text></g><path class="column-divider" d="M64 0 V26"/><g class="table-cell" data-column="type" data-cell-left="144" data-cell-right="290"><text class="field-type" x="144" y="18">u4</text></g><path class="column-divider" d="M134 0 V26"/><g class="table-cell" data-column="id" data-cell-left="310" data-cell-right="544"><text class="field-label" x="310" y="18">largest_root_page</text></g><path class="column-divider" d="M300 0 V26"/><circle class="doc-dot" cx="553" cy="15" r="2.3" aria-hidden="true"/></g><g class="row row-kind-field" id="node-0-row-16" data-row-id="/seq/16" data-row-kind="field" data-pos="56" data-size="4 B" role="group" aria-label="text_encoding: u4" tabindex="0" data-tooltip="text_encoding&#10;&#10;u4&#10;&#10;The database text encoding. A value of 1 means UTF-8. A value of 2 means UTF-16le. A value of 3 means UTF-16be.&#10;&#10;enum: encodings" transform="translate(0 558)"><title>text_encoding
+
+u4
+
+The database text encoding. A value of 1 means UTF-8. A value of 2 means UTF-16le. A value of 3 means UTF-16be.
+
+enum: encodings</title><rect class="row-hit" width="560" height="39"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">56</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="124"><text class="field-size" x="74" y="18">4 B</text></g><path class="column-divider" d="M64 0 V26"/><g class="table-cell" data-column="type" data-cell-left="144" data-cell-right="290"><text class="field-type" x="144" y="18">u4</text></g><path class="column-divider" d="M134 0 V26"/><g class="table-cell" data-column="id" data-cell-left="310" data-cell-right="544"><text class="field-label" x="310" y="18">text_encoding</text></g><path class="column-divider" d="M300 0 V26"/><text class="field-detail" x="16" y="34">enum: encodings</text><circle class="doc-dot" cx="553" cy="15" r="2.3" aria-hidden="true"/></g><g class="row row-kind-field" id="node-0-row-17" data-row-id="/seq/17" data-row-kind="field" data-pos="60" data-size="4 B" role="group" aria-label="user_version: u4" tabindex="0" data-tooltip="user_version&#10;&#10;u4&#10;&#10;The &quot;user version&quot; as read and set by the user_version pragma." transform="translate(0 597)"><title>user_version
+
+u4
+
+The &quot;user version&quot; as read and set by the user_version pragma.</title><rect class="row-hit" width="560" height="26"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">60</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="124"><text class="field-size" x="74" y="18">4 B</text></g><path class="column-divider" d="M64 0 V26"/><g class="table-cell" data-column="type" data-cell-left="144" data-cell-right="290"><text class="field-type" x="144" y="18">u4</text></g><path class="column-divider" d="M134 0 V26"/><g class="table-cell" data-column="id" data-cell-left="310" data-cell-right="544"><text class="field-label" x="310" y="18">user_version</text></g><path class="column-divider" d="M300 0 V26"/><circle class="doc-dot" cx="553" cy="15" r="2.3" aria-hidden="true"/></g><g class="row row-kind-field" id="node-0-row-18" data-row-id="/seq/18" data-row-kind="field" data-pos="64" data-size="4 B" role="group" aria-label="is_incremental_vacuum: u4" tabindex="0" data-tooltip="is_incremental_vacuum&#10;&#10;u4&#10;&#10;True (non-zero) for incremental-vacuum mode. False (zero) otherwise." transform="translate(0 623)"><title>is_incremental_vacuum
+
+u4
+
+True (non-zero) for incremental-vacuum mode. False (zero) otherwise.</title><rect class="row-hit" width="560" height="26"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">64</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="124"><text class="field-size" x="74" y="18">4 B</text></g><path class="column-divider" d="M64 0 V26"/><g class="table-cell" data-column="type" data-cell-left="144" data-cell-right="290"><text class="field-type" x="144" y="18">u4</text></g><path class="column-divider" d="M134 0 V26"/><g class="table-cell" data-column="id" data-cell-left="310" data-cell-right="544"><text class="field-label" x="310" y="18">is_incremental_vacuum</text></g><path class="column-divider" d="M300 0 V26"/><circle class="doc-dot" cx="553" cy="15" r="2.3" aria-hidden="true"/></g><g class="row row-kind-field" id="node-0-row-19" data-row-id="/seq/19" data-row-kind="field" data-pos="68" data-size="4 B" role="group" aria-label="application_id: u4" tabindex="0" data-tooltip="application_id&#10;&#10;u4&#10;&#10;The &quot;Application ID&quot; set by PRAGMA application_id." transform="translate(0 649)"><title>application_id
+
+u4
+
+The &quot;Application ID&quot; set by PRAGMA application_id.</title><rect class="row-hit" width="560" height="26"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">68</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="124"><text class="field-size" x="74" y="18">4 B</text></g><path class="column-divider" d="M64 0 V26"/><g class="table-cell" data-column="type" data-cell-left="144" data-cell-right="290"><text class="field-type" x="144" y="18">u4</text></g><path class="column-divider" d="M134 0 V26"/><g class="table-cell" data-column="id" data-cell-left="310" data-cell-right="544"><text class="field-label" x="310" y="18">application_id</text></g><path class="column-divider" d="M300 0 V26"/><circle class="doc-dot" cx="553" cy="15" r="2.3" aria-hidden="true"/></g><g class="row row-kind-field" id="node-0-row-20" data-row-id="/seq/20" data-row-kind="field" data-pos="72" data-size="20 B" role="group" aria-label="reserved: bytes" tabindex="0" data-tooltip="reserved&#10;&#10;bytes" transform="translate(0 675)"><title>reserved
+
+bytes</title><rect class="row-hit" width="560" height="26"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">72</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="124"><text class="field-size" x="74" y="18">20 B</text></g><path class="column-divider" d="M64 0 V26"/><g class="table-cell" data-column="type" data-cell-left="144" data-cell-right="290"><text class="field-type" x="144" y="18">bytes</text></g><path class="column-divider" d="M134 0 V26"/><g class="table-cell" data-column="id" data-cell-left="310" data-cell-right="544"><text class="field-label" x="310" y="18">reserved</text></g><path class="column-divider" d="M300 0 V26"/></g><g class="row row-kind-field" id="node-0-row-21" data-row-id="/seq/21" data-row-kind="field" data-pos="92" data-size="4 B" role="group" aria-label="version_valid_for: u4" tabindex="0" data-tooltip="version_valid_for&#10;&#10;u4" transform="translate(0 701)"><title>version_valid_for
+
+u4</title><rect class="row-hit" width="560" height="26"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">92</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="124"><text class="field-size" x="74" y="18">4 B</text></g><path class="column-divider" d="M64 0 V26"/><g class="table-cell" data-column="type" data-cell-left="144" data-cell-right="290"><text class="field-type" x="144" y="18">u4</text></g><path class="column-divider" d="M134 0 V26"/><g class="table-cell" data-column="id" data-cell-left="310" data-cell-right="544"><text class="field-label" x="310" y="18">version_valid_for</text></g><path class="column-divider" d="M300 0 V26"/></g><g class="row row-kind-field" id="node-0-row-22" data-row-id="/seq/22" data-row-kind="field" data-pos="96" data-size="4 B" role="group" aria-label="sqlite_version_number: u4" tabindex="0" data-tooltip="sqlite_version_number&#10;&#10;u4" transform="translate(0 727)"><title>sqlite_version_number
+
+u4</title><rect class="row-hit" width="560" height="26"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">96</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="124"><text class="field-size" x="74" y="18">4 B</text></g><path class="column-divider" d="M64 0 V26"/><g class="table-cell" data-column="type" data-cell-left="144" data-cell-right="290"><text class="field-type" x="144" y="18">u4</text></g><path class="column-divider" d="M134 0 V26"/><g class="table-cell" data-column="id" data-cell-left="310" data-cell-right="544"><text class="field-label" x="310" y="18">sqlite_version_number</text></g><path class="column-divider" d="M300 0 V26"/></g><g class="row row-kind-field" id="node-0-row-23" data-row-id="/seq/23" data-row-kind="field" data-pos="100" data-size="?" role="group" aria-label="root_page: btree_page" tabindex="0" data-tooltip="root_page&#10;&#10;btree_page" transform="translate(0 753)"><title>root_page
+
+btree_page</title><rect class="row-hit" width="560" height="26"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">100</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="124"><text class="field-size" x="74" y="18">?</text></g><path class="column-divider" d="M64 0 V26"/><g class="table-cell" data-column="type" data-cell-left="144" data-cell-right="290"><text class="field-type" x="144" y="18">btree_page</text></g><path class="column-divider" d="M134 0 V26"/><g class="table-cell" data-column="id" data-cell-left="310" data-cell-right="544"><text class="field-label" x="310" y="18">root_page</text></g><path class="column-divider" d="M300 0 V26"/></g></g><g class="section section-kind-instance" data-section-kind="instances" role="group" aria-label="instances"><rect class="section-band" y="779" width="560" height="24"/><text class="section-label" x="16" y="795">instances</text><text class="section-count" x="544" y="795" text-anchor="end">1 entry</text><rect class="table-header" y="803" width="560" height="22"/><text class="table-heading" data-column="pos" x="16" y="818">pos</text><text class="table-heading" data-column="size" x="74" y="818">size</text><text class="table-heading" data-column="type" x="144" y="818">type</text><text class="table-heading" data-column="id" x="310" y="818">id</text><g class="row row-kind-instance" id="node-0-row-24" data-row-id="/instances/len_page" data-row-kind="instance" data-pos="—" data-size="—" role="group" aria-label="len_page: value" tabindex="0" data-tooltip="len_page&#10;&#10;value&#10;&#10;value: len_page_mod == 1 ? 0x10000 : len_page_mod" transform="translate(0 825)"><title>len_page
+
+value
+
+value: len_page_mod == 1 ? 0x10000 : len_page_mod</title><rect class="row-hit" width="560" height="39"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">—</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="124"><text class="field-size" x="74" y="18">—</text></g><path class="column-divider" d="M64 0 V26"/><g class="table-cell" data-column="type" data-cell-left="144" data-cell-right="290"><text class="field-type" x="144" y="18">value</text></g><path class="column-divider" d="M134 0 V26"/><g class="table-cell" data-column="id" data-cell-left="310" data-cell-right="544"><text class="field-label" x="310" y="18">len_page</text></g><path class="column-divider" d="M300 0 V26"/><text class="field-detail" x="16" y="34">value: len_page_mod == 1 ? 0x10000 : len_page_mod</text></g></g></g>
+<g class="node node-kind-enum" id="node-1" data-node-id="node-1" data-source-file="sqlite3.ksy" data-size="" role="group" aria-label="sqlite3::versions" tabindex="0" data-tooltip="sqlite3::versions&#10;&#10;enum" transform="translate(1591 1427)"><title>sqlite3::versions
+
+enum</title><rect class="node-box" width="320" height="152" rx="10"/><path class="node-header" d="M10 0 H310 Q320 0 320 10 V54 H0 V10 Q0 0 10 0 Z"/><rect class="node-accent" x="0" y="12" width="4" height="30" rx="2"/><text class="node-title" x="16" y="24">versions</text><text class="node-subtitle" x="16" y="44">enum</text><g class="section section-kind-enum" data-section-kind="values" role="group" aria-label="values"><rect class="section-band" y="54" width="320" height="24"/><text class="section-label" x="16" y="70">values</text><text class="section-count" x="304" y="70" text-anchor="end">2 entries</text><rect class="table-header" y="78" width="320" height="22"/><text class="table-heading" data-column="type" x="16" y="93">value</text><text class="table-heading" data-column="id" x="106" y="93">id</text><g class="row row-kind-enum" id="node-1-row-0" data-row-id="1" data-row-kind="enum" data-pos="—" data-size="—" role="group" aria-label="legacy: 1" tabindex="0" data-tooltip="legacy&#10;&#10;1" transform="translate(0 100)"><title>legacy
+
+1</title><rect class="row-hit" width="320" height="26"/><path class="row-divider" d="M0 0 H320"/><g class="table-cell" data-column="type" data-cell-left="16" data-cell-right="86"><text class="field-type" x="16" y="18">1</text></g><g class="table-cell" data-column="id" data-cell-left="106" data-cell-right="304"><text class="field-label" x="106" y="18">legacy</text></g><path class="column-divider" d="M96 0 V26"/></g><g class="row row-kind-enum" id="node-1-row-1" data-row-id="2" data-row-kind="enum" data-pos="—" data-size="—" role="group" aria-label="wal: 2" tabindex="0" data-tooltip="wal&#10;&#10;2" transform="translate(0 126)"><title>wal
+
+2</title><rect class="row-hit" width="320" height="26"/><path class="row-divider" d="M0 0 H320"/><g class="table-cell" data-column="type" data-cell-left="16" data-cell-right="86"><text class="field-type" x="16" y="18">2</text></g><g class="table-cell" data-column="id" data-cell-left="106" data-cell-right="304"><text class="field-label" x="106" y="18">wal</text></g><path class="column-divider" d="M96 0 V26"/></g></g></g>
+<g class="node node-kind-enum" id="node-2" data-node-id="node-2" data-source-file="sqlite3.ksy" data-size="" role="group" aria-label="sqlite3::encodings" tabindex="0" data-tooltip="sqlite3::encodings&#10;&#10;enum" transform="translate(828 1276)"><title>sqlite3::encodings
+
+enum</title><rect class="node-box" width="320" height="178" rx="10"/><path class="node-header" d="M10 0 H310 Q320 0 320 10 V54 H0 V10 Q0 0 10 0 Z"/><rect class="node-accent" x="0" y="12" width="4" height="30" rx="2"/><text class="node-title" x="16" y="24">encodings</text><text class="node-subtitle" x="16" y="44">enum</text><g class="section section-kind-enum" data-section-kind="values" role="group" aria-label="values"><rect class="section-band" y="54" width="320" height="24"/><text class="section-label" x="16" y="70">values</text><text class="section-count" x="304" y="70" text-anchor="end">3 entries</text><rect class="table-header" y="78" width="320" height="22"/><text class="table-heading" data-column="type" x="16" y="93">value</text><text class="table-heading" data-column="id" x="106" y="93">id</text><g class="row row-kind-enum" id="node-2-row-0" data-row-id="1" data-row-kind="enum" data-pos="—" data-size="—" role="group" aria-label="utf_8: 1" tabindex="0" data-tooltip="utf_8&#10;&#10;1" transform="translate(0 100)"><title>utf_8
+
+1</title><rect class="row-hit" width="320" height="26"/><path class="row-divider" d="M0 0 H320"/><g class="table-cell" data-column="type" data-cell-left="16" data-cell-right="86"><text class="field-type" x="16" y="18">1</text></g><g class="table-cell" data-column="id" data-cell-left="106" data-cell-right="304"><text class="field-label" x="106" y="18">utf_8</text></g><path class="column-divider" d="M96 0 V26"/></g><g class="row row-kind-enum" id="node-2-row-1" data-row-id="2" data-row-kind="enum" data-pos="—" data-size="—" role="group" aria-label="utf_16le: 2" tabindex="0" data-tooltip="utf_16le&#10;&#10;2" transform="translate(0 126)"><title>utf_16le
+
+2</title><rect class="row-hit" width="320" height="26"/><path class="row-divider" d="M0 0 H320"/><g class="table-cell" data-column="type" data-cell-left="16" data-cell-right="86"><text class="field-type" x="16" y="18">2</text></g><g class="table-cell" data-column="id" data-cell-left="106" data-cell-right="304"><text class="field-label" x="106" y="18">utf_16le</text></g><path class="column-divider" d="M96 0 V26"/></g><g class="row row-kind-enum" id="node-2-row-2" data-row-id="3" data-row-kind="enum" data-pos="—" data-size="—" role="group" aria-label="utf_16be: 3" tabindex="0" data-tooltip="utf_16be&#10;&#10;3" transform="translate(0 152)"><title>utf_16be
+
+3</title><rect class="row-hit" width="320" height="26"/><path class="row-divider" d="M0 0 H320"/><g class="table-cell" data-column="type" data-cell-left="16" data-cell-right="86"><text class="field-type" x="16" y="18">3</text></g><g class="table-cell" data-column="id" data-cell-left="106" data-cell-right="304"><text class="field-label" x="106" y="18">utf_16be</text></g><path class="column-divider" d="M96 0 V26"/></g></g></g>
+<g class="node node-kind-type" id="node-3" data-node-id="node-3" data-source-file="sqlite3.ksy" data-size="?" role="group" aria-label="sqlite3::btree_page" tabindex="0" data-tooltip="sqlite3::btree_page&#10;&#10;sqlite3.ksy · endian: be&#10;&#10;Sequence size: ?" transform="translate(1591 176)"><title>sqlite3::btree_page
+
+sqlite3.ksy · endian: be
+
+Sequence size: ?</title><rect class="node-box" width="560" height="327" rx="10"/><path class="node-header" d="M10 0 H550 Q560 0 560 10 V57 H0 V10 Q0 0 10 0 Z"/><rect class="node-accent" x="0" y="12" width="4" height="33" rx="2"/><text class="node-title" x="16" y="24">btree_page</text><text class="node-subtitle" x="16" y="44">sqlite3.ksy · endian: be</text><rect class="size-badge" x="420" y="10" width="124" height="39" rx="5"/><text class="size-caption" x="430" y="22">SEQ SIZE</text><text class="type-size" x="430" y="38">?</text><g class="section section-kind-field" data-section-kind="seq" role="group" aria-label="seq"><rect class="section-band" y="57" width="560" height="24"/><text class="section-label" x="16" y="73">seq</text><text class="section-count" x="544" y="73" text-anchor="end">7 entries</text><rect class="table-header" y="81" width="560" height="22"/><text class="table-heading" data-column="pos" x="16" y="96">pos</text><text class="table-heading" data-column="size" x="77" y="96">size</text><text class="table-heading" data-column="type" x="177" y="96">type</text><text class="table-heading" data-column="id" x="352.5" y="96">id</text><g class="row row-kind-field" id="node-3-row-0" data-row-id="/seq/0" data-row-kind="field" data-pos="0" data-size="1 B" role="group" aria-label="page_type: u1" tabindex="0" data-tooltip="page_type&#10;&#10;u1" transform="translate(0 103)"><title>page_type
+
+u1</title><rect class="row-hit" width="560" height="26"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="57"><text class="field-pos" x="16" y="18">0</text></g><g class="table-cell" data-column="size" data-cell-left="77" data-cell-right="157"><text class="field-size" x="77" y="18">1 B</text></g><path class="column-divider" d="M67 0 V26"/><g class="table-cell" data-column="type" data-cell-left="177" data-cell-right="332.5"><text class="field-type" x="177" y="18">u1</text></g><path class="column-divider" d="M167 0 V26"/><g class="table-cell" data-column="id" data-cell-left="352.5" data-cell-right="544"><text class="field-label" x="352.5" y="18">page_type</text></g><path class="column-divider" d="M342.5 0 V26"/></g><g class="row row-kind-field" id="node-3-row-1" data-row-id="/seq/1" data-row-kind="field" data-pos="1" data-size="2 B" role="group" aria-label="first_freeblock: u2" tabindex="0" data-tooltip="first_freeblock&#10;&#10;u2" transform="translate(0 129)"><title>first_freeblock
+
+u2</title><rect class="row-hit" width="560" height="26"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="57"><text class="field-pos" x="16" y="18">1</text></g><g class="table-cell" data-column="size" data-cell-left="77" data-cell-right="157"><text class="field-size" x="77" y="18">2 B</text></g><path class="column-divider" d="M67 0 V26"/><g class="table-cell" data-column="type" data-cell-left="177" data-cell-right="332.5"><text class="field-type" x="177" y="18">u2</text></g><path class="column-divider" d="M167 0 V26"/><g class="table-cell" data-column="id" data-cell-left="352.5" data-cell-right="544"><text class="field-label" x="352.5" y="18">first_freeblock</text></g><path class="column-divider" d="M342.5 0 V26"/></g><g class="row row-kind-field" id="node-3-row-2" data-row-id="/seq/2" data-row-kind="field" data-pos="3" data-size="2 B" role="group" aria-label="num_cells: u2" tabindex="0" data-tooltip="num_cells&#10;&#10;u2" transform="translate(0 155)"><title>num_cells
+
+u2</title><rect class="row-hit" width="560" height="26"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="57"><text class="field-pos" x="16" y="18">3</text></g><g class="table-cell" data-column="size" data-cell-left="77" data-cell-right="157"><text class="field-size" x="77" y="18">2 B</text></g><path class="column-divider" d="M67 0 V26"/><g class="table-cell" data-column="type" data-cell-left="177" data-cell-right="332.5"><text class="field-type" x="177" y="18">u2</text></g><path class="column-divider" d="M167 0 V26"/><g class="table-cell" data-column="id" data-cell-left="352.5" data-cell-right="544"><text class="field-label" x="352.5" y="18">num_cells</text></g><path class="column-divider" d="M342.5 0 V26"/></g><g class="row row-kind-field" id="node-3-row-3" data-row-id="/seq/3" data-row-kind="field" data-pos="5" data-size="2 B" role="group" aria-label="ofs_cells: u2" tabindex="0" data-tooltip="ofs_cells&#10;&#10;u2" transform="translate(0 181)"><title>ofs_cells
+
+u2</title><rect class="row-hit" width="560" height="26"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="57"><text class="field-pos" x="16" y="18">5</text></g><g class="table-cell" data-column="size" data-cell-left="77" data-cell-right="157"><text class="field-size" x="77" y="18">2 B</text></g><path class="column-divider" d="M67 0 V26"/><g class="table-cell" data-column="type" data-cell-left="177" data-cell-right="332.5"><text class="field-type" x="177" y="18">u2</text></g><path class="column-divider" d="M167 0 V26"/><g class="table-cell" data-column="id" data-cell-left="352.5" data-cell-right="544"><text class="field-label" x="352.5" y="18">ofs_cells</text></g><path class="column-divider" d="M342.5 0 V26"/></g><g class="row row-kind-field" id="node-3-row-4" data-row-id="/seq/4" data-row-kind="field" data-pos="7" data-size="1 B" role="group" aria-label="num_frag_free_bytes: u1" tabindex="0" data-tooltip="num_frag_free_bytes&#10;&#10;u1" transform="translate(0 207)"><title>num_frag_free_bytes
+
+u1</title><rect class="row-hit" width="560" height="26"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="57"><text class="field-pos" x="16" y="18">7</text></g><g class="table-cell" data-column="size" data-cell-left="77" data-cell-right="157"><text class="field-size" x="77" y="18">1 B</text></g><path class="column-divider" d="M67 0 V26"/><g class="table-cell" data-column="type" data-cell-left="177" data-cell-right="332.5"><text class="field-type" x="177" y="18">u1</text></g><path class="column-divider" d="M167 0 V26"/><g class="table-cell" data-column="id" data-cell-left="352.5" data-cell-right="544"><text class="field-label" x="352.5" y="18">num_frag_free_bytes</text></g><path class="column-divider" d="M342.5 0 V26"/></g><g class="row row-kind-field" id="node-3-row-5" data-row-id="/seq/5" data-row-kind="field" data-pos="8" data-size="0–4 B" role="group" aria-label="right_ptr: u4" tabindex="0" data-tooltip="right_ptr&#10;&#10;u4&#10;&#10;if: page_type == 2 or page_type == 5" transform="translate(0 233)"><title>right_ptr
+
+u4
+
+if: page_type == 2 or page_type == 5</title><rect class="row-hit" width="560" height="39"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="57"><text class="field-pos" x="16" y="18">8</text></g><g class="table-cell" data-column="size" data-cell-left="77" data-cell-right="157"><text class="field-size" x="77" y="18">0–4 B</text></g><path class="column-divider" d="M67 0 V26"/><g class="table-cell" data-column="type" data-cell-left="177" data-cell-right="332.5"><text class="field-type" x="177" y="18">u4</text></g><path class="column-divider" d="M167 0 V26"/><g class="table-cell" data-column="id" data-cell-left="352.5" data-cell-right="544"><text class="field-label" x="352.5" y="18">right_ptr</text></g><path class="column-divider" d="M342.5 0 V26"/><text class="field-detail" x="16" y="34">if: page_type == 2 or page_type == 5</text></g><g class="row row-kind-field" id="node-3-row-6" data-row-id="/seq/6" data-row-kind="field" data-pos="8–12" data-size="num_cells × ?" role="group" aria-label="cells: ref_cell" tabindex="0" data-tooltip="cells&#10;&#10;ref_cell&#10;&#10;repeat: expr · repeat-expr: num_cells" transform="translate(0 272)"><title>cells
+
+ref_cell
+
+repeat: expr · repeat-expr: num_cells</title><rect class="row-hit" width="560" height="55"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="57"><text class="field-pos" x="16" y="18">8–12</text></g><g class="table-cell" data-column="size" data-cell-left="77" data-cell-right="157"><text class="field-size" x="77" y="18">num_cells</text><text class="field-size" x="77" y="34"> × ?</text></g><path class="column-divider" d="M67 0 V42"/><g class="table-cell" data-column="type" data-cell-left="177" data-cell-right="332.5"><text class="field-type" x="177" y="18">ref_cell</text></g><path class="column-divider" d="M167 0 V42"/><g class="table-cell" data-column="id" data-cell-left="352.5" data-cell-right="544"><text class="field-label" x="352.5" y="18">cells</text></g><path class="column-divider" d="M342.5 0 V42"/><text class="field-detail" x="16" y="50">repeat: expr · repeat-expr: num_cells</text></g></g></g>
+<g class="node node-kind-type" id="node-4" data-node-id="node-4" data-source-file="sqlite3.ksy" data-size="2 B" role="group" aria-label="sqlite3::ref_cell" tabindex="0" data-tooltip="sqlite3::ref_cell&#10;&#10;sqlite3.ksy · endian: be&#10;&#10;Sequence size: 2 B" transform="translate(1591 891)"><title>sqlite3::ref_cell
+
+sqlite3.ksy · endian: be
+
+Sequence size: 2 B</title><rect class="node-box" width="567" height="253" rx="10"/><path class="node-header" d="M10 0 H557 Q567 0 567 10 V57 H0 V10 Q0 0 10 0 Z"/><rect class="node-accent" x="0" y="12" width="4" height="33" rx="2"/><text class="node-title" x="16" y="24">ref_cell</text><text class="node-subtitle" x="16" y="44">sqlite3.ksy · endian: be</text><rect class="size-badge" x="427" y="10" width="124" height="39" rx="5"/><text class="size-caption" x="437" y="22">SEQ SIZE</text><text class="type-size" x="437" y="38">2 B</text><g class="section section-kind-field" data-section-kind="seq" role="group" aria-label="seq"><rect class="section-band" y="57" width="567" height="24"/><text class="section-label" x="16" y="73">seq</text><text class="section-count" x="551" y="73" text-anchor="end">1 entry</text><rect class="table-header" y="81" width="567" height="22"/><text class="table-heading" data-column="pos" x="16" y="96">pos</text><text class="table-heading" data-column="size" x="101" y="96">size</text><text class="table-heading" data-column="type" x="171" y="96">type</text><text class="table-heading" data-column="id" x="407" y="96">id</text><g class="row row-kind-field" id="node-4-row-0" data-row-id="/seq/0" data-row-kind="field" data-pos="0" data-size="2 B" role="group" aria-label="ofs_body: u2" tabindex="0" data-tooltip="ofs_body&#10;&#10;u2" transform="translate(0 103)"><title>ofs_body
+
+u2</title><rect class="row-hit" width="567" height="26"/><path class="row-divider" d="M0 0 H567"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="81"><text class="field-pos" x="16" y="18">0</text></g><g class="table-cell" data-column="size" data-cell-left="101" data-cell-right="151"><text class="field-size" x="101" y="18">2 B</text></g><path class="column-divider" d="M91 0 V26"/><g class="table-cell" data-column="type" data-cell-left="171" data-cell-right="387"><text class="field-type" x="171" y="18">u2</text></g><path class="column-divider" d="M161 0 V26"/><g class="table-cell" data-column="id" data-cell-left="407" data-cell-right="551"><text class="field-label" x="407" y="18">ofs_body</text></g><path class="column-divider" d="M397 0 V26"/></g></g><g class="section section-kind-instance" data-section-kind="instances" role="group" aria-label="instances"><rect class="section-band" y="129" width="567" height="24"/><text class="section-label" x="16" y="145">instances</text><text class="section-count" x="551" y="145" text-anchor="end">1 entry</text><rect class="table-header" y="153" width="567" height="22"/><text class="table-heading" data-column="pos" x="16" y="168">pos</text><text class="table-heading" data-column="size" x="101" y="168">size</text><text class="table-heading" data-column="type" x="171" y="168">type</text><text class="table-heading" data-column="id" x="407" y="168">id</text><g class="row row-kind-instance" id="node-4-row-1" data-row-id="/instances/body" data-row-kind="instance" data-pos="ofs_body" data-size="?" role="group" aria-label="body: switch (_parent.page_type)" tabindex="0" data-tooltip="body&#10;&#10;switch (_parent.page_type)&#10;&#10;case 13: cell_table_leaf · case 5: cell_table_interior · case 10: cell_index_leaf · case 2: cell_index_interior" transform="translate(0 175)"><title>body
+
+switch (_parent.page_type)
+
+case 13: cell_table_leaf · case 5: cell_table_interior · case 10: cell_index_leaf · case 2: cell_index_interior</title><rect class="row-hit" width="567" height="78"/><path class="row-divider" d="M0 0 H567"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="81"><text class="field-pos" x="16" y="18">ofs_body</text></g><g class="table-cell" data-column="size" data-cell-left="101" data-cell-right="151"><text class="field-size" x="101" y="18">?</text></g><path class="column-divider" d="M91 0 V26"/><g class="table-cell" data-column="type" data-cell-left="171" data-cell-right="387"><text class="field-type" x="171" y="18">switch (_parent.page_type)</text></g><path class="column-divider" d="M161 0 V26"/><g class="table-cell" data-column="id" data-cell-left="407" data-cell-right="551"><text class="field-label" x="407" y="18">body</text></g><path class="column-divider" d="M397 0 V26"/><text class="field-detail" x="16" y="34">case 13: cell_table_leaf · case 5: cell_table_interior · case 10:</text><text class="field-detail" x="16" y="47">cell_index_leaf · case 2: cell_index_interior</text></g></g></g>
+<g class="node node-kind-type" id="node-5" data-node-id="node-5" data-source-file="sqlite3.ksy" data-size="?" role="group" aria-label="sqlite3::cell_table_leaf" tabindex="0" data-tooltip="sqlite3::cell_table_leaf&#10;&#10;sqlite3.ksy · endian: be&#10;&#10;Sequence size: ?" transform="translate(828 1015)"><title>sqlite3::cell_table_leaf
+
+sqlite3.ksy · endian: be
+
+Sequence size: ?</title><rect class="node-box" width="560" height="213" rx="10"/><path class="node-header" d="M10 0 H550 Q560 0 560 10 V57 H0 V10 Q0 0 10 0 Z"/><rect class="node-accent" x="0" y="12" width="4" height="33" rx="2"/><text class="node-title" x="16" y="24">cell_table_leaf</text><text class="node-subtitle" x="16" y="44">sqlite3.ksy · endian: be</text><rect class="size-badge" x="420" y="10" width="124" height="39" rx="5"/><text class="size-caption" x="430" y="22">SEQ SIZE</text><text class="type-size" x="430" y="38">?</text><g class="section section-kind-field" data-section-kind="seq" role="group" aria-label="seq"><rect class="section-band" y="57" width="560" height="24"/><text class="section-label" x="16" y="73">seq</text><text class="section-count" x="544" y="73" text-anchor="end">3 entries</text><rect class="table-header" y="81" width="560" height="22"/><text class="table-heading" data-column="pos" x="16" y="96">pos</text><text class="table-heading" data-column="size" x="74" y="96">size</text><text class="table-heading" data-column="type" x="174" y="96">type</text><text class="table-heading" data-column="id" x="362" y="96">id</text><g class="row row-kind-field" id="node-5-row-0" data-row-id="/seq/0" data-row-kind="field" data-pos="0" data-size="?" role="group" aria-label="len_payload: vlq_base128_be" tabindex="0" data-tooltip="len_payload&#10;&#10;vlq_base128_be" transform="translate(0 103)"><title>len_payload
+
+vlq_base128_be</title><rect class="row-hit" width="560" height="26"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">0</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="154"><text class="field-size" x="74" y="18">?</text></g><path class="column-divider" d="M64 0 V26"/><g class="table-cell" data-column="type" data-cell-left="174" data-cell-right="342"><text class="field-type" x="174" y="18">vlq_base128_be</text></g><path class="column-divider" d="M164 0 V26"/><g class="table-cell" data-column="id" data-cell-left="362" data-cell-right="544"><text class="field-label" x="362" y="18">len_payload</text></g><path class="column-divider" d="M352 0 V26"/></g><g class="row row-kind-field" id="node-5-row-1" data-row-id="/seq/1" data-row-kind="field" data-pos="?" data-size="?" role="group" aria-label="row_id: vlq_base128_be" tabindex="0" data-tooltip="row_id&#10;&#10;vlq_base128_be" transform="translate(0 129)"><title>row_id
+
+vlq_base128_be</title><rect class="row-hit" width="560" height="26"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">?</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="154"><text class="field-size" x="74" y="18">?</text></g><path class="column-divider" d="M64 0 V26"/><g class="table-cell" data-column="type" data-cell-left="174" data-cell-right="342"><text class="field-type" x="174" y="18">vlq_base128_be</text></g><path class="column-divider" d="M164 0 V26"/><g class="table-cell" data-column="id" data-cell-left="362" data-cell-right="544"><text class="field-label" x="362" y="18">row_id</text></g><path class="column-divider" d="M352 0 V26"/></g><g class="row row-kind-field" id="node-5-row-2" data-row-id="/seq/2" data-row-kind="field" data-pos="?" data-size="len_payload.value B" role="group" aria-label="payload: cell_payload" tabindex="0" data-tooltip="payload&#10;&#10;cell_payload" transform="translate(0 155)"><title>payload
+
+cell_payload</title><rect class="row-hit" width="560" height="58"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">?</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="154"><text class="field-size" x="74" y="18">len_paylo</text><text class="field-size" x="74" y="34">ad.value</text><text class="field-size" x="74" y="50">B</text></g><path class="column-divider" d="M64 0 V58"/><g class="table-cell" data-column="type" data-cell-left="174" data-cell-right="342"><text class="field-type" x="174" y="18">cell_payload</text></g><path class="column-divider" d="M164 0 V58"/><g class="table-cell" data-column="id" data-cell-left="362" data-cell-right="544"><text class="field-label" x="362" y="18">payload</text></g><path class="column-divider" d="M352 0 V58"/></g></g></g>
+<g class="node node-kind-type" id="node-6" data-node-id="node-6" data-source-file="sqlite3.ksy" data-size="?" role="group" aria-label="sqlite3::cell_table_interior" tabindex="0" data-tooltip="sqlite3::cell_table_interior&#10;&#10;sqlite3.ksy · endian: be&#10;&#10;Sequence size: ?" transform="translate(88 1349)"><title>sqlite3::cell_table_interior
+
+sqlite3.ksy · endian: be
+
+Sequence size: ?</title><rect class="node-box" width="560" height="155" rx="10"/><path class="node-header" d="M10 0 H550 Q560 0 560 10 V57 H0 V10 Q0 0 10 0 Z"/><rect class="node-accent" x="0" y="12" width="4" height="33" rx="2"/><text class="node-title" x="16" y="24">cell_table_interior</text><text class="node-subtitle" x="16" y="44">sqlite3.ksy · endian: be</text><rect class="size-badge" x="420" y="10" width="124" height="39" rx="5"/><text class="size-caption" x="430" y="22">SEQ SIZE</text><text class="type-size" x="430" y="38">?</text><g class="section section-kind-field" data-section-kind="seq" role="group" aria-label="seq"><rect class="section-band" y="57" width="560" height="24"/><text class="section-label" x="16" y="73">seq</text><text class="section-count" x="544" y="73" text-anchor="end">2 entries</text><rect class="table-header" y="81" width="560" height="22"/><text class="table-heading" data-column="pos" x="16" y="96">pos</text><text class="table-heading" data-column="size" x="74" y="96">size</text><text class="table-heading" data-column="type" x="144" y="96">type</text><text class="table-heading" data-column="id" x="347" y="96">id</text><g class="row row-kind-field" id="node-6-row-0" data-row-id="/seq/0" data-row-kind="field" data-pos="0" data-size="4 B" role="group" aria-label="left_child_page: u4" tabindex="0" data-tooltip="left_child_page&#10;&#10;u4" transform="translate(0 103)"><title>left_child_page
+
+u4</title><rect class="row-hit" width="560" height="26"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">0</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="124"><text class="field-size" x="74" y="18">4 B</text></g><path class="column-divider" d="M64 0 V26"/><g class="table-cell" data-column="type" data-cell-left="144" data-cell-right="327"><text class="field-type" x="144" y="18">u4</text></g><path class="column-divider" d="M134 0 V26"/><g class="table-cell" data-column="id" data-cell-left="347" data-cell-right="544"><text class="field-label" x="347" y="18">left_child_page</text></g><path class="column-divider" d="M337 0 V26"/></g><g class="row row-kind-field" id="node-6-row-1" data-row-id="/seq/1" data-row-kind="field" data-pos="4" data-size="?" role="group" aria-label="row_id: vlq_base128_be" tabindex="0" data-tooltip="row_id&#10;&#10;vlq_base128_be" transform="translate(0 129)"><title>row_id
+
+vlq_base128_be</title><rect class="row-hit" width="560" height="26"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">4</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="124"><text class="field-size" x="74" y="18">?</text></g><path class="column-divider" d="M64 0 V26"/><g class="table-cell" data-column="type" data-cell-left="144" data-cell-right="327"><text class="field-type" x="144" y="18">vlq_base128_be</text></g><path class="column-divider" d="M134 0 V26"/><g class="table-cell" data-column="id" data-cell-left="347" data-cell-right="544"><text class="field-label" x="347" y="18">row_id</text></g><path class="column-divider" d="M337 0 V26"/></g></g></g>
+<g class="node node-kind-type" id="node-7" data-node-id="node-7" data-source-file="sqlite3.ksy" data-size="?" role="group" aria-label="sqlite3::cell_index_leaf" tabindex="0" data-tooltip="sqlite3::cell_index_leaf&#10;&#10;sqlite3.ksy · endian: be&#10;&#10;Sequence size: ?" transform="translate(1591 1192)"><title>sqlite3::cell_index_leaf
+
+sqlite3.ksy · endian: be
+
+Sequence size: ?</title><rect class="node-box" width="560" height="187" rx="10"/><path class="node-header" d="M10 0 H550 Q560 0 560 10 V57 H0 V10 Q0 0 10 0 Z"/><rect class="node-accent" x="0" y="12" width="4" height="33" rx="2"/><text class="node-title" x="16" y="24">cell_index_leaf</text><text class="node-subtitle" x="16" y="44">sqlite3.ksy · endian: be</text><rect class="size-badge" x="420" y="10" width="124" height="39" rx="5"/><text class="size-caption" x="430" y="22">SEQ SIZE</text><text class="type-size" x="430" y="38">?</text><g class="section section-kind-field" data-section-kind="seq" role="group" aria-label="seq"><rect class="section-band" y="57" width="560" height="24"/><text class="section-label" x="16" y="73">seq</text><text class="section-count" x="544" y="73" text-anchor="end">2 entries</text><rect class="table-header" y="81" width="560" height="22"/><text class="table-heading" data-column="pos" x="16" y="96">pos</text><text class="table-heading" data-column="size" x="74" y="96">size</text><text class="table-heading" data-column="type" x="174" y="96">type</text><text class="table-heading" data-column="id" x="362" y="96">id</text><g class="row row-kind-field" id="node-7-row-0" data-row-id="/seq/0" data-row-kind="field" data-pos="0" data-size="?" role="group" aria-label="len_payload: vlq_base128_be" tabindex="0" data-tooltip="len_payload&#10;&#10;vlq_base128_be" transform="translate(0 103)"><title>len_payload
+
+vlq_base128_be</title><rect class="row-hit" width="560" height="26"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">0</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="154"><text class="field-size" x="74" y="18">?</text></g><path class="column-divider" d="M64 0 V26"/><g class="table-cell" data-column="type" data-cell-left="174" data-cell-right="342"><text class="field-type" x="174" y="18">vlq_base128_be</text></g><path class="column-divider" d="M164 0 V26"/><g class="table-cell" data-column="id" data-cell-left="362" data-cell-right="544"><text class="field-label" x="362" y="18">len_payload</text></g><path class="column-divider" d="M352 0 V26"/></g><g class="row row-kind-field" id="node-7-row-1" data-row-id="/seq/1" data-row-kind="field" data-pos="?" data-size="len_payload.value B" role="group" aria-label="payload: cell_payload" tabindex="0" data-tooltip="payload&#10;&#10;cell_payload" transform="translate(0 129)"><title>payload
+
+cell_payload</title><rect class="row-hit" width="560" height="58"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">?</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="154"><text class="field-size" x="74" y="18">len_paylo</text><text class="field-size" x="74" y="34">ad.value</text><text class="field-size" x="74" y="50">B</text></g><path class="column-divider" d="M64 0 V58"/><g class="table-cell" data-column="type" data-cell-left="174" data-cell-right="342"><text class="field-type" x="174" y="18">cell_payload</text></g><path class="column-divider" d="M164 0 V58"/><g class="table-cell" data-column="id" data-cell-left="362" data-cell-right="544"><text class="field-label" x="362" y="18">payload</text></g><path class="column-divider" d="M352 0 V58"/></g></g></g>
+<g class="node node-kind-type" id="node-8" data-node-id="node-8" data-source-file="sqlite3.ksy" data-size="?" role="group" aria-label="sqlite3::cell_index_interior" tabindex="0" data-tooltip="sqlite3::cell_index_interior&#10;&#10;sqlite3.ksy · endian: be&#10;&#10;Sequence size: ?" transform="translate(88 1088)"><title>sqlite3::cell_index_interior
+
+sqlite3.ksy · endian: be
+
+Sequence size: ?</title><rect class="node-box" width="560" height="213" rx="10"/><path class="node-header" d="M10 0 H550 Q560 0 560 10 V57 H0 V10 Q0 0 10 0 Z"/><rect class="node-accent" x="0" y="12" width="4" height="33" rx="2"/><text class="node-title" x="16" y="24">cell_index_interior</text><text class="node-subtitle" x="16" y="44">sqlite3.ksy · endian: be</text><rect class="size-badge" x="420" y="10" width="124" height="39" rx="5"/><text class="size-caption" x="430" y="22">SEQ SIZE</text><text class="type-size" x="430" y="38">?</text><g class="section section-kind-field" data-section-kind="seq" role="group" aria-label="seq"><rect class="section-band" y="57" width="560" height="24"/><text class="section-label" x="16" y="73">seq</text><text class="section-count" x="544" y="73" text-anchor="end">3 entries</text><rect class="table-header" y="81" width="560" height="22"/><text class="table-heading" data-column="pos" x="16" y="96">pos</text><text class="table-heading" data-column="size" x="74" y="96">size</text><text class="table-heading" data-column="type" x="174" y="96">type</text><text class="table-heading" data-column="id" x="362" y="96">id</text><g class="row row-kind-field" id="node-8-row-0" data-row-id="/seq/0" data-row-kind="field" data-pos="0" data-size="4 B" role="group" aria-label="left_child_page: u4" tabindex="0" data-tooltip="left_child_page&#10;&#10;u4" transform="translate(0 103)"><title>left_child_page
+
+u4</title><rect class="row-hit" width="560" height="26"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">0</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="154"><text class="field-size" x="74" y="18">4 B</text></g><path class="column-divider" d="M64 0 V26"/><g class="table-cell" data-column="type" data-cell-left="174" data-cell-right="342"><text class="field-type" x="174" y="18">u4</text></g><path class="column-divider" d="M164 0 V26"/><g class="table-cell" data-column="id" data-cell-left="362" data-cell-right="544"><text class="field-label" x="362" y="18">left_child_page</text></g><path class="column-divider" d="M352 0 V26"/></g><g class="row row-kind-field" id="node-8-row-1" data-row-id="/seq/1" data-row-kind="field" data-pos="4" data-size="?" role="group" aria-label="len_payload: vlq_base128_be" tabindex="0" data-tooltip="len_payload&#10;&#10;vlq_base128_be" transform="translate(0 129)"><title>len_payload
+
+vlq_base128_be</title><rect class="row-hit" width="560" height="26"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">4</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="154"><text class="field-size" x="74" y="18">?</text></g><path class="column-divider" d="M64 0 V26"/><g class="table-cell" data-column="type" data-cell-left="174" data-cell-right="342"><text class="field-type" x="174" y="18">vlq_base128_be</text></g><path class="column-divider" d="M164 0 V26"/><g class="table-cell" data-column="id" data-cell-left="362" data-cell-right="544"><text class="field-label" x="362" y="18">len_payload</text></g><path class="column-divider" d="M352 0 V26"/></g><g class="row row-kind-field" id="node-8-row-2" data-row-id="/seq/2" data-row-kind="field" data-pos="?" data-size="len_payload.value B" role="group" aria-label="payload: cell_payload" tabindex="0" data-tooltip="payload&#10;&#10;cell_payload" transform="translate(0 155)"><title>payload
+
+cell_payload</title><rect class="row-hit" width="560" height="58"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">?</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="154"><text class="field-size" x="74" y="18">len_paylo</text><text class="field-size" x="74" y="34">ad.value</text><text class="field-size" x="74" y="50">B</text></g><path class="column-divider" d="M64 0 V58"/><g class="table-cell" data-column="type" data-cell-left="174" data-cell-right="342"><text class="field-type" x="174" y="18">cell_payload</text></g><path class="column-divider" d="M164 0 V58"/><g class="table-cell" data-column="id" data-cell-left="362" data-cell-right="544"><text class="field-label" x="362" y="18">payload</text></g><path class="column-divider" d="M352 0 V58"/></g></g></g>
+<g class="node node-kind-type" id="node-9" data-node-id="node-9" data-source-file="sqlite3.ksy" data-size="?" role="group" aria-label="sqlite3::cell_payload" tabindex="0" data-tooltip="sqlite3::cell_payload&#10;&#10;sqlite3.ksy · endian: be&#10;&#10;Sequence size: ?" transform="translate(828 677)"><title>sqlite3::cell_payload
+
+sqlite3.ksy · endian: be
+
+Sequence size: ?</title><rect class="node-box" width="583" height="290" rx="10"/><path class="node-header" d="M10 0 H573 Q583 0 583 10 V57 H0 V10 Q0 0 10 0 Z"/><rect class="node-accent" x="0" y="12" width="4" height="33" rx="2"/><text class="node-title" x="16" y="24">cell_payload</text><text class="node-subtitle" x="16" y="44">sqlite3.ksy · endian: be</text><rect class="size-badge" x="443" y="10" width="124" height="39" rx="5"/><text class="size-caption" x="453" y="22">SEQ SIZE</text><text class="type-size" x="453" y="38">?</text><g class="section section-kind-field" data-section-kind="seq" role="group" aria-label="seq"><rect class="section-band" y="57" width="583" height="24"/><text class="section-label" x="16" y="73">seq</text><text class="section-count" x="567" y="73" text-anchor="end">3 entries</text><rect class="table-header" y="81" width="583" height="22"/><text class="table-heading" data-column="pos" x="16" y="96">pos</text><text class="table-heading" data-column="size" x="74" y="96">size</text><text class="table-heading" data-column="type" x="174" y="96">type</text><text class="table-heading" data-column="id" x="410" y="96">id</text><g class="row row-kind-field" id="node-9-row-0" data-row-id="/seq/0" data-row-kind="field" data-pos="0" data-size="?" role="group" aria-label="len_header_and_len: vlq_base128_be" tabindex="0" data-tooltip="len_header_and_len&#10;&#10;vlq_base128_be" transform="translate(0 103)"><title>len_header_and_len
+
+vlq_base128_be</title><rect class="row-hit" width="583" height="26"/><path class="row-divider" d="M0 0 H583"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">0</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="154"><text class="field-size" x="74" y="18">?</text></g><path class="column-divider" d="M64 0 V26"/><g class="table-cell" data-column="type" data-cell-left="174" data-cell-right="390"><text class="field-type" x="174" y="18">vlq_base128_be</text></g><path class="column-divider" d="M164 0 V26"/><g class="table-cell" data-column="id" data-cell-left="410" data-cell-right="567"><text class="field-label" x="410" y="18">len_header_and_len</text></g><path class="column-divider" d="M400 0 V26"/></g><g class="row row-kind-field" id="node-9-row-1" data-row-id="/seq/1" data-row-kind="field" data-pos="?" data-size="len_header_and_len.value - 1 B" role="group" aria-label="column_serials: serials" tabindex="0" data-tooltip="column_serials&#10;&#10;serials" transform="translate(0 129)"><title>column_serials
+
+serials</title><rect class="row-hit" width="583" height="74"/><path class="row-divider" d="M0 0 H583"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">?</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="154"><text class="field-size" x="74" y="18">len_heade</text><text class="field-size" x="74" y="34">r_and_len</text><text class="field-size" x="74" y="50">.value -</text><text class="field-size" x="74" y="66">1 B</text></g><path class="column-divider" d="M64 0 V74"/><g class="table-cell" data-column="type" data-cell-left="174" data-cell-right="390"><text class="field-type" x="174" y="18">serials</text></g><path class="column-divider" d="M164 0 V74"/><g class="table-cell" data-column="id" data-cell-left="410" data-cell-right="567"><text class="field-label" x="410" y="18">column_serials</text></g><path class="column-divider" d="M400 0 V74"/></g><g class="row row-kind-field" id="node-9-row-2" data-row-id="/seq/2" data-row-kind="field" data-pos="?" data-size="column_serials.entries.size × ?" role="group" aria-label="column_contents: column_content(column_serials.entries[_index])" tabindex="0" data-tooltip="column_contents&#10;&#10;column_content(column_serials.entries[_index])&#10;&#10;repeat: expr · repeat-expr: column_serials.entries.size" transform="translate(0 203)"><title>column_contents
+
+column_content(column_serials.entries[_index])
+
+repeat: expr · repeat-expr: column_serials.entries.size</title><rect class="row-hit" width="583" height="87"/><path class="row-divider" d="M0 0 H583"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">?</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="154"><text class="field-size" x="74" y="18">column_se</text><text class="field-size" x="74" y="34">rials.ent</text><text class="field-size" x="74" y="50">ries.size</text><text class="field-size" x="74" y="66"> × ?</text></g><path class="column-divider" d="M64 0 V74"/><g class="table-cell" data-column="type" data-cell-left="174" data-cell-right="390"><text class="field-type" x="174" y="18">column_content(column_seri</text><text class="field-type" x="174" y="34">als.entries[_index])</text></g><path class="column-divider" d="M164 0 V74"/><g class="table-cell" data-column="id" data-cell-left="410" data-cell-right="567"><text class="field-label" x="410" y="18">column_contents</text></g><path class="column-divider" d="M400 0 V74"/><text class="field-detail" x="16" y="82">repeat: expr · repeat-expr: column_serials.entries.size</text></g></g></g>
+<g class="node node-kind-type" id="node-10" data-node-id="node-10" data-source-file="sqlite3.ksy" data-size="?" role="group" aria-label="sqlite3::serials" tabindex="0" data-tooltip="sqlite3::serials&#10;&#10;sqlite3.ksy · endian: be&#10;&#10;Sequence size: ?" transform="translate(828 1502)"><title>sqlite3::serials
+
+sqlite3.ksy · endian: be
+
+Sequence size: ?</title><rect class="node-box" width="560" height="142" rx="10"/><path class="node-header" d="M10 0 H550 Q560 0 560 10 V57 H0 V10 Q0 0 10 0 Z"/><rect class="node-accent" x="0" y="12" width="4" height="33" rx="2"/><text class="node-title" x="16" y="24">serials</text><text class="node-subtitle" x="16" y="44">sqlite3.ksy · endian: be</text><rect class="size-badge" x="420" y="10" width="124" height="39" rx="5"/><text class="size-caption" x="430" y="22">SEQ SIZE</text><text class="type-size" x="430" y="38">?</text><g class="section section-kind-field" data-section-kind="seq" role="group" aria-label="seq"><rect class="section-band" y="57" width="560" height="24"/><text class="section-label" x="16" y="73">seq</text><text class="section-count" x="544" y="73" text-anchor="end">1 entry</text><rect class="table-header" y="81" width="560" height="22"/><text class="table-heading" data-column="pos" x="16" y="96">pos</text><text class="table-heading" data-column="size" x="74" y="96">size</text><text class="table-heading" data-column="type" x="149" y="96">type</text><text class="table-heading" data-column="id" x="349.5" y="96">id</text><g class="row row-kind-field" id="node-10-row-0" data-row-id="/seq/0" data-row-kind="field" data-pos="0" data-size="to EOS" role="group" aria-label="entries: serial" tabindex="0" data-tooltip="entries&#10;&#10;serial&#10;&#10;repeat: eos" transform="translate(0 103)"><title>entries
+
+serial
+
+repeat: eos</title><rect class="row-hit" width="560" height="39"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">0</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="129"><text class="field-size" x="74" y="18">to EOS</text></g><path class="column-divider" d="M64 0 V26"/><g class="table-cell" data-column="type" data-cell-left="149" data-cell-right="329.5"><text class="field-type" x="149" y="18">serial</text></g><path class="column-divider" d="M139 0 V26"/><g class="table-cell" data-column="id" data-cell-left="349.5" data-cell-right="544"><text class="field-label" x="349.5" y="18">entries</text></g><path class="column-divider" d="M339.5 0 V26"/><text class="field-detail" x="16" y="34">repeat: eos</text></g></g></g>
+<g class="node node-kind-type" id="node-11" data-node-id="node-11" data-source-file="sqlite3.ksy" data-size="?" role="group" aria-label="sqlite3::serial" tabindex="0" data-tooltip="sqlite3::serial&#10;&#10;sqlite3.ksy · endian: be&#10;&#10;Sequence size: ?" transform="translate(1591 551)"><title>sqlite3::serial
+
+sqlite3.ksy · endian: be
+
+Sequence size: ?</title><rect class="node-box" width="560" height="292" rx="10"/><path class="node-header" d="M10 0 H550 Q560 0 560 10 V57 H0 V10 Q0 0 10 0 Z"/><rect class="node-accent" x="0" y="12" width="4" height="33" rx="2"/><text class="node-title" x="16" y="24">serial</text><text class="node-subtitle" x="16" y="44">sqlite3.ksy · endian: be</text><rect class="size-badge" x="420" y="10" width="124" height="39" rx="5"/><text class="size-caption" x="430" y="22">SEQ SIZE</text><text class="type-size" x="430" y="38">?</text><g class="section section-kind-field" data-section-kind="seq" role="group" aria-label="seq"><rect class="section-band" y="57" width="560" height="24"/><text class="section-label" x="16" y="73">seq</text><text class="section-count" x="544" y="73" text-anchor="end">1 entry</text><rect class="table-header" y="81" width="560" height="22"/><text class="table-heading" data-column="pos" x="16" y="96">pos</text><text class="table-heading" data-column="size" x="74" y="96">size</text><text class="table-heading" data-column="type" x="144" y="96">type</text><text class="table-heading" data-column="id" x="347" y="96">id</text><g class="row row-kind-field" id="node-11-row-0" data-row-id="/seq/0" data-row-kind="field" data-pos="0" data-size="?" role="group" aria-label="code: vlq_base128_be" tabindex="0" data-tooltip="code&#10;&#10;vlq_base128_be" transform="translate(0 103)"><title>code
+
+vlq_base128_be</title><rect class="row-hit" width="560" height="26"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">0</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="124"><text class="field-size" x="74" y="18">?</text></g><path class="column-divider" d="M64 0 V26"/><g class="table-cell" data-column="type" data-cell-left="144" data-cell-right="327"><text class="field-type" x="144" y="18">vlq_base128_be</text></g><path class="column-divider" d="M134 0 V26"/><g class="table-cell" data-column="id" data-cell-left="347" data-cell-right="544"><text class="field-label" x="347" y="18">code</text></g><path class="column-divider" d="M337 0 V26"/></g></g><g class="section section-kind-instance" data-section-kind="instances" role="group" aria-label="instances"><rect class="section-band" y="129" width="560" height="24"/><text class="section-label" x="16" y="145">instances</text><text class="section-count" x="544" y="145" text-anchor="end">3 entries</text><rect class="table-header" y="153" width="560" height="22"/><text class="table-heading" data-column="pos" x="16" y="168">pos</text><text class="table-heading" data-column="size" x="74" y="168">size</text><text class="table-heading" data-column="type" x="144" y="168">type</text><text class="table-heading" data-column="id" x="347" y="168">id</text><g class="row row-kind-instance" id="node-11-row-1" data-row-id="/instances/is_blob" data-row-kind="instance" data-pos="—" data-size="—" role="group" aria-label="is_blob: value" tabindex="0" data-tooltip="is_blob&#10;&#10;value&#10;&#10;value: code.value &gt;= 12 and (code.value % 2 == 0)" transform="translate(0 175)"><title>is_blob
+
+value
+
+value: code.value &gt;= 12 and (code.value % 2 == 0)</title><rect class="row-hit" width="560" height="39"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">—</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="124"><text class="field-size" x="74" y="18">—</text></g><path class="column-divider" d="M64 0 V26"/><g class="table-cell" data-column="type" data-cell-left="144" data-cell-right="327"><text class="field-type" x="144" y="18">value</text></g><path class="column-divider" d="M134 0 V26"/><g class="table-cell" data-column="id" data-cell-left="347" data-cell-right="544"><text class="field-label" x="347" y="18">is_blob</text></g><path class="column-divider" d="M337 0 V26"/><text class="field-detail" x="16" y="34">value: code.value &gt;= 12 and (code.value % 2 == 0)</text></g><g class="row row-kind-instance" id="node-11-row-2" data-row-id="/instances/is_string" data-row-kind="instance" data-pos="—" data-size="—" role="group" aria-label="is_string: value" tabindex="0" data-tooltip="is_string&#10;&#10;value&#10;&#10;value: code.value &gt;= 13 and (code.value % 2 == 1)" transform="translate(0 214)"><title>is_string
+
+value
+
+value: code.value &gt;= 13 and (code.value % 2 == 1)</title><rect class="row-hit" width="560" height="39"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">—</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="124"><text class="field-size" x="74" y="18">—</text></g><path class="column-divider" d="M64 0 V26"/><g class="table-cell" data-column="type" data-cell-left="144" data-cell-right="327"><text class="field-type" x="144" y="18">value</text></g><path class="column-divider" d="M134 0 V26"/><g class="table-cell" data-column="id" data-cell-left="347" data-cell-right="544"><text class="field-label" x="347" y="18">is_string</text></g><path class="column-divider" d="M337 0 V26"/><text class="field-detail" x="16" y="34">value: code.value &gt;= 13 and (code.value % 2 == 1)</text></g><g class="row row-kind-instance" id="node-11-row-3" data-row-id="/instances/len_content" data-row-kind="instance" data-pos="—" data-size="—" role="group" aria-label="len_content: value" tabindex="0" data-tooltip="len_content&#10;&#10;value&#10;&#10;value: (code.value - 12) / 2 · if: code.value &gt;= 12" transform="translate(0 253)"><title>len_content
+
+value
+
+value: (code.value - 12) / 2 · if: code.value &gt;= 12</title><rect class="row-hit" width="560" height="39"/><path class="row-divider" d="M0 0 H560"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="54"><text class="field-pos" x="16" y="18">—</text></g><g class="table-cell" data-column="size" data-cell-left="74" data-cell-right="124"><text class="field-size" x="74" y="18">—</text></g><path class="column-divider" d="M64 0 V26"/><g class="table-cell" data-column="type" data-cell-left="144" data-cell-right="327"><text class="field-type" x="144" y="18">value</text></g><path class="column-divider" d="M134 0 V26"/><g class="table-cell" data-column="id" data-cell-left="347" data-cell-right="544"><text class="field-label" x="347" y="18">len_content</text></g><path class="column-divider" d="M337 0 V26"/><text class="field-detail" x="16" y="34">value: (code.value - 12) / 2 · if: code.value &gt;= 12</text></g></g></g>
+<g class="node node-kind-type" id="node-12" data-node-id="node-12" data-source-file="sqlite3.ksy" data-size="?" role="group" aria-label="sqlite3::column_content" tabindex="0" data-tooltip="sqlite3::column_content&#10;&#10;sqlite3.ksy · endian: be&#10;&#10;Sequence size: ?" transform="translate(828 176)"><title>sqlite3::column_content
+
+sqlite3.ksy · endian: be
+
+Sequence size: ?</title><rect class="node-box" width="573" height="453" rx="10"/><path class="node-header" d="M10 0 H563 Q573 0 573 10 V57 H0 V10 Q0 0 10 0 Z"/><rect class="node-accent" x="0" y="12" width="4" height="33" rx="2"/><text class="node-title" x="16" y="24">column_content</text><text class="node-subtitle" x="16" y="44">sqlite3.ksy · endian: be</text><rect class="size-badge" x="433" y="10" width="124" height="39" rx="5"/><text class="size-caption" x="443" y="22">SEQ SIZE</text><text class="type-size" x="443" y="38">?</text><g class="section section-kind-param" data-section-kind="params" role="group" aria-label="params"><rect class="section-band" y="57" width="573" height="24"/><text class="section-label" x="16" y="73">params</text><text class="section-count" x="557" y="73" text-anchor="end">1 entry</text><rect class="table-header" y="81" width="573" height="22"/><text class="table-heading" data-column="pos" x="16" y="96">pos</text><text class="table-heading" data-column="size" x="77" y="96">size</text><text class="table-heading" data-column="type" x="177" y="96">type</text><text class="table-heading" data-column="id" x="413" y="96">id</text><g class="row row-kind-param" id="node-12-row-0" data-row-id="/params/0" data-row-kind="param" data-pos="—" data-size="—" role="group" aria-label="serial_type: serial" tabindex="0" data-tooltip="serial_type&#10;&#10;serial" transform="translate(0 103)"><title>serial_type
+
+serial</title><rect class="row-hit" width="573" height="26"/><path class="row-divider" d="M0 0 H573"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="57"><text class="field-pos" x="16" y="18">—</text></g><g class="table-cell" data-column="size" data-cell-left="77" data-cell-right="157"><text class="field-size" x="77" y="18">—</text></g><path class="column-divider" d="M67 0 V26"/><g class="table-cell" data-column="type" data-cell-left="177" data-cell-right="393"><text class="field-type" x="177" y="18">serial</text></g><path class="column-divider" d="M167 0 V26"/><g class="table-cell" data-column="id" data-cell-left="413" data-cell-right="557"><text class="field-label" x="413" y="18">serial_type</text></g><path class="column-divider" d="M403 0 V26"/></g></g><g class="section section-kind-field" data-section-kind="seq" role="group" aria-label="seq"><rect class="section-band" y="129" width="573" height="24"/><text class="section-label" x="16" y="145">seq</text><text class="section-count" x="557" y="145" text-anchor="end">4 entries</text><rect class="table-header" y="153" width="573" height="22"/><text class="table-heading" data-column="pos" x="16" y="168">pos</text><text class="table-heading" data-column="size" x="77" y="168">size</text><text class="table-heading" data-column="type" x="177" y="168">type</text><text class="table-heading" data-column="id" x="413" y="168">id</text><g class="row row-kind-field" id="node-12-row-1" data-row-id="/seq/0" data-row-kind="field" data-pos="0" data-size="0–64 bit" role="group" aria-label="as_int: switch (serial_type.code.value)" tabindex="0" data-tooltip="as_int&#10;&#10;switch (serial_type.code.value)&#10;&#10;if: serial_type.code.value &gt;= 1 and serial_type.code.value &lt;= 6 · case 1: u1 · case 2: u2 · case 3: b24 · case 4: u4 · case 5: b48 · case 6: u8" transform="translate(0 175)"><title>as_int
+
+switch (serial_type.code.value)
+
+if: serial_type.code.value &gt;= 1 and serial_type.code.value &lt;= 6 · case 1: u1 · case 2: u2 · case 3: b24 · case 4: u4 · case 5: b48 · case 6: u8</title><rect class="row-hit" width="573" height="81"/><path class="row-divider" d="M0 0 H573"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="57"><text class="field-pos" x="16" y="18">0</text></g><g class="table-cell" data-column="size" data-cell-left="77" data-cell-right="157"><text class="field-size" x="77" y="18">0–64 bit</text></g><path class="column-divider" d="M67 0 V42"/><g class="table-cell" data-column="type" data-cell-left="177" data-cell-right="393"><text class="field-type" x="177" y="18">switch (serial_type.code.v</text><text class="field-type" x="177" y="34">alue)</text></g><path class="column-divider" d="M167 0 V42"/><g class="table-cell" data-column="id" data-cell-left="413" data-cell-right="557"><text class="field-label" x="413" y="18">as_int</text></g><path class="column-divider" d="M403 0 V42"/><text class="field-detail" x="16" y="50">if: serial_type.code.value &gt;= 1 and serial_type.code.value &lt;= 6 · case</text><text class="field-detail" x="16" y="63">1: u1 · case 2: u2 · case 3: b24 · case 4: u4 · case 5: b48 · case</text><text class="field-detail" x="16" y="76">6: u8</text></g><g class="row row-kind-field" id="node-12-row-2" data-row-id="/seq/1" data-row-kind="field" data-pos="0–8" data-size="0–8 B" role="group" aria-label="as_float: f8" tabindex="0" data-tooltip="as_float&#10;&#10;f8&#10;&#10;if: serial_type.code.value == 7" transform="translate(0 256)"><title>as_float
+
+f8
+
+if: serial_type.code.value == 7</title><rect class="row-hit" width="573" height="39"/><path class="row-divider" d="M0 0 H573"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="57"><text class="field-pos" x="16" y="18">0–8</text></g><g class="table-cell" data-column="size" data-cell-left="77" data-cell-right="157"><text class="field-size" x="77" y="18">0–8 B</text></g><path class="column-divider" d="M67 0 V26"/><g class="table-cell" data-column="type" data-cell-left="177" data-cell-right="393"><text class="field-type" x="177" y="18">f8</text></g><path class="column-divider" d="M167 0 V26"/><g class="table-cell" data-column="id" data-cell-left="413" data-cell-right="557"><text class="field-label" x="413" y="18">as_float</text></g><path class="column-divider" d="M403 0 V26"/><text class="field-detail" x="16" y="34">if: serial_type.code.value == 7</text></g><g class="row row-kind-field" id="node-12-row-3" data-row-id="/seq/2" data-row-kind="field" data-pos="0–16" data-size="0 / serial_type.len_content B" role="group" aria-label="as_blob: bytes" tabindex="0" data-tooltip="as_blob&#10;&#10;bytes&#10;&#10;if: serial_type.is_blob" transform="translate(0 295)"><title>as_blob
+
+bytes
+
+if: serial_type.is_blob</title><rect class="row-hit" width="573" height="87"/><path class="row-divider" d="M0 0 H573"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="57"><text class="field-pos" x="16" y="18">0–16</text></g><g class="table-cell" data-column="size" data-cell-left="77" data-cell-right="157"><text class="field-size" x="77" y="18">0 / seria</text><text class="field-size" x="77" y="34">l_type.le</text><text class="field-size" x="77" y="50">n_content</text><text class="field-size" x="77" y="66"> B</text></g><path class="column-divider" d="M67 0 V74"/><g class="table-cell" data-column="type" data-cell-left="177" data-cell-right="393"><text class="field-type" x="177" y="18">bytes</text></g><path class="column-divider" d="M167 0 V74"/><g class="table-cell" data-column="id" data-cell-left="413" data-cell-right="557"><text class="field-label" x="413" y="18">as_blob</text></g><path class="column-divider" d="M403 0 V74"/><text class="field-detail" x="16" y="82">if: serial_type.is_blob</text></g><g class="row row-kind-field" id="node-12-row-4" data-row-id="/seq/3" data-row-kind="field" data-pos="?" data-size="serial_type.len_content B" role="group" aria-label="as_str: str" tabindex="0" data-tooltip="as_str&#10;&#10;str&#10;&#10;encoding: UTF-8" transform="translate(0 382)"><title>as_str
+
+str
+
+encoding: UTF-8</title><rect class="row-hit" width="573" height="71"/><path class="row-divider" d="M0 0 H573"/><g class="table-cell" data-column="pos" data-cell-left="16" data-cell-right="57"><text class="field-pos" x="16" y="18">?</text></g><g class="table-cell" data-column="size" data-cell-left="77" data-cell-right="157"><text class="field-size" x="77" y="18">serial_ty</text><text class="field-size" x="77" y="34">pe.len_co</text><text class="field-size" x="77" y="50">ntent B</text></g><path class="column-divider" d="M67 0 V58"/><g class="table-cell" data-column="type" data-cell-left="177" data-cell-right="393"><text class="field-type" x="177" y="18">str</text></g><path class="column-divider" d="M167 0 V58"/><g class="table-cell" data-column="id" data-cell-left="413" data-cell-right="557"><text class="field-label" x="413" y="18">as_str</text></g><path class="column-divider" d="M403 0 V58"/><text class="field-detail" x="16" y="66">encoding: UTF-8</text></g></g></g>
+</g>
+</g></g>
+<g id="controls" class="controls" role="group" aria-label="Diagram controls">
+<g class="control" data-action="out" transform="translate(0 0)" tabindex="0" role="button" aria-label="Zoom out"><title>Zoom out</title><rect width="36" height="34" rx="7"/><text x="18" y="17">−</text></g>
+<g class="control" data-action="in" transform="translate(42 0)" tabindex="0" role="button" aria-label="Zoom in"><title>Zoom in</title><rect width="36" height="34" rx="7"/><text x="18" y="17">+</text></g>
+<g class="control" data-action="reset" transform="translate(84 0)" tabindex="0" role="button" aria-label="Reset view (0)"><title>Reset view (0)</title><rect width="54" height="34" rx="7"/><text class="reset-text" x="27" y="17">Reset</text></g>
+</g>
+<g id="tooltip" class="tooltip-layer" role="tooltip"><foreignObject width="440" height="300"><xhtml:div class="tooltip-box"/></foreignObject></g>
+<script><![CDATA[
+(() => {
+  'use strict';
+  const svg = document.currentScript.ownerSVGElement;
+  if (!svg) return;
+  const viewport = svg.querySelector('#viewport');
+  const controls = svg.querySelector('#controls');
+  const tooltip = svg.querySelector('#tooltip');
+  const tipObject = tooltip.querySelector('foreignObject');
+  const tipText = tooltip.querySelector('.tooltip-box');
+  const nodes = [...svg.querySelectorAll('.node')];
+  const edges = [...svg.querySelectorAll('.edge')];
+  let view = {x: 0, y: 0, k: 1}, drag = null, active = null, hideTimer;
+  function local(clientX, clientY) {
+    const point = svg.createSVGPoint(); point.x = clientX; point.y = clientY;
+    const matrix = svg.getScreenCTM();
+    return matrix ? point.matrixTransform(matrix.inverse()) : point;
+  }
+  function apply() { viewport.setAttribute('transform', `translate(${view.x} ${view.y}) scale(${view.k})`); }
+  function clearHighlight() {
+    for (const el of [...nodes, ...edges]) el.classList.remove('muted', 'active');
+  }
+  function hide() {
+    tooltip.style.visibility = 'hidden'; active = null; clearHighlight();
+  }
+  function deferHide() { clearTimeout(hideTimer); hideTimer = setTimeout(hide, 180); }
+  function highlight(item) {
+    const node = item.closest('.node');
+    const selectedEdge = item.closest('.edge');
+    if (!node && !selectedEdge) return;
+    const id = node?.dataset.nodeId, row = item.closest('.row');
+    const connected = new Set(node ? [id] : [selectedEdge.dataset.source, selectedEdge.dataset.target]);
+    for (const edge of edges) {
+      const hit = selectedEdge ? edge === selectedEdge : row
+        ? edge.dataset.source === id && edge.dataset.sourceRow === row.dataset.rowId
+        : edge.dataset.source === id || edge.dataset.target === id;
+      edge.classList.toggle('active', hit); edge.classList.toggle('muted', !hit);
+      if (hit) { connected.add(edge.dataset.source); connected.add(edge.dataset.target); }
+    }
+    for (const other of nodes) {
+      other.classList.toggle('active', selectedEdge ? connected.has(other.dataset.nodeId) : other === node);
+      other.classList.toggle('muted', !connected.has(other.dataset.nodeId));
+    }
+  }
+  function positionTip(clientX, clientY) {
+    const bounds = svg.getBoundingClientRect(), matrix = svg.getScreenCTM();
+    if (!matrix) return;
+    const width = Math.max(120, Math.min(440, bounds.width - 32));
+    const maximum = Math.max(80, Math.min(440, bounds.height - 40));
+    tipObject.setAttribute('width', width);
+    tipText.style.maxHeight = `${maximum}px`;
+    tipText.style.width = `${width}px`;
+    const height = Math.min(maximum, tipText.scrollHeight + 2);
+    tipObject.setAttribute('height', height);
+    let x = clientX + 18, y = clientY + 16;
+    if (x + width > bounds.right - 12) x = clientX - width - 18;
+    x = Math.max(bounds.left + 12, Math.min(x, bounds.right - width - 12));
+    y = Math.max(bounds.top + 12, Math.min(y, bounds.bottom - height - 12));
+    const point = local(x, y), scale = 1 / Math.hypot(matrix.a, matrix.b);
+    tooltip.setAttribute('transform', `translate(${point.x} ${point.y}) scale(${scale})`);
+  }
+  function show(item, clientX, clientY) {
+    if (!item || drag?.moved) return;
+    clearTimeout(hideTimer);
+    if (active !== item) {
+      active = item; tipText.textContent = item.dataset.tooltip;
+      tipText.scrollTop = 0; highlight(item);
+    }
+    tooltip.style.visibility = 'visible';
+    positionTip(clientX, clientY);
+  }
+  function arrangeControls() {
+    const bounds = svg.getBoundingClientRect(), matrix = svg.getScreenCTM();
+    if (!matrix) return;
+    const point = local(bounds.right - 154, bounds.top + 16);
+    controls.setAttribute('transform', `translate(${point.x} ${point.y}) scale(${1 / Math.hypot(matrix.a, matrix.b)})`);
+    controls.style.display = 'inline';
+  }
+  function zoom(factor, clientX, clientY) {
+    const point = local(clientX, clientY), next = Math.max(.12, Math.min(12, view.k * factor));
+    const ratio = next / view.k;
+    view.x = point.x - (point.x - view.x) * ratio;
+    view.y = point.y - (point.y - view.y) * ratio;
+    view.k = next; apply(); hide();
+  }
+  function action(name) {
+    if (name === 'reset') { view = {x: 0, y: 0, k: 1}; apply(); hide(); return; }
+    const box = svg.getBoundingClientRect();
+    zoom(name === 'in' ? 1.3 : 1 / 1.3, box.left + box.width / 2, box.top + box.height / 2);
+  }
+  svg.addEventListener('wheel', event => {
+    if (event.target.closest('.tooltip-layer')) return;
+    event.preventDefault();
+    zoom(Math.exp(-Math.max(-150, Math.min(150, event.deltaY)) * .002), event.clientX, event.clientY);
+  }, {passive: false});
+  svg.addEventListener('pointerdown', event => {
+    if (event.button !== 0 || event.target.closest('.controls, .tooltip-layer')) return;
+    const point = local(event.clientX, event.clientY);
+    drag = {id: event.pointerId, x: point.x, y: point.y, originX: view.x, originY: view.y,
+      clientX: event.clientX, clientY: event.clientY, moved: false};
+  });
+  svg.addEventListener('pointermove', event => {
+    // A release outside the SVG can precede capture (before the drag threshold).
+    // The button state also handles releasing the primary button during chords.
+    if (drag?.id === event.pointerId && !(event.buttons & 1)) endDrag(event);
+    if (drag && drag.id === event.pointerId) {
+      if (!drag.moved && Math.hypot(event.clientX - drag.clientX, event.clientY - drag.clientY) > 4) {
+        drag.moved = true; svg.setPointerCapture(event.pointerId); hide();
+        svg.style.cursor = 'grabbing';
+      }
+      if (drag.moved) {
+        const point = local(event.clientX, event.clientY);
+        view.x = drag.originX + point.x - drag.x; view.y = drag.originY + point.y - drag.y; apply();
+        return;
+      }
+    }
+    const item = event.target.closest('[data-tooltip]');
+    if (item) show(item, event.clientX, event.clientY);
+  });
+  function endDrag(event) {
+    if (drag?.id !== event.pointerId) return;
+    if (svg.hasPointerCapture(event.pointerId)) svg.releasePointerCapture(event.pointerId);
+    drag = null; svg.style.cursor = '';
+  }
+  svg.addEventListener('pointerup', endDrag);
+  svg.addEventListener('pointercancel', endDrag);
+  svg.addEventListener('lostpointercapture', endDrag);
+  svg.addEventListener('pointerover', event => {
+    const item = event.target.closest('[data-tooltip]');
+    if (item) show(item, event.clientX, event.clientY);
+  });
+  svg.addEventListener('pointerout', event => {
+    const next = event.relatedTarget;
+    if (!next || !svg.contains(next) || (!next.closest('[data-tooltip]') && !next.closest('.tooltip-layer'))) deferHide();
+  });
+  tooltip.addEventListener('pointerenter', () => clearTimeout(hideTimer));
+  tooltip.addEventListener('pointerleave', deferHide);
+  svg.addEventListener('focusin', event => {
+    const item = event.target.closest('[data-tooltip]');
+    if (!item) return;
+    const box = item.getBoundingClientRect(); show(item, box.right, box.top);
+  });
+  svg.addEventListener('focusout', deferHide);
+  for (const control of controls.querySelectorAll('[data-action]')) {
+    control.addEventListener('click', () => action(control.dataset.action));
+    control.addEventListener('keydown', event => {
+      if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.stopPropagation(); action(control.dataset.action); }
+    });
+  }
+  svg.addEventListener('keydown', event => {
+    if (event.key === 'Escape') hide();
+    else if (event.key === '+' || event.key === '=') { event.preventDefault(); action('in'); }
+    else if (event.key === '-') { event.preventDefault(); action('out'); }
+    else if (event.key === '0' || event.key === 'Home') { event.preventDefault(); action('reset'); }
+  });
+  window.addEventListener('resize', () => { arrangeControls(); hide(); });
+  arrangeControls();
+})();
+]]></script>
+</svg>

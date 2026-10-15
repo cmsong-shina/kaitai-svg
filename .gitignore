@@ -1,0 +1,8 @@
+.venv/
+.uv-cache/
+.uv-python/
+__pycache__/
+*.py[cod]
+dist/
+.scratch/
+*.egg-info/

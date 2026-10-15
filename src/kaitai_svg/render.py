@@ -389,8 +389,86 @@ def _render_row(item: NodeLayout, row: RowLayout, index: int, row_index: int, *,
     return "".join(parts)
 
 
+class _EdgeLabelContext:
+    """Bounded label placement against complete routes and visible obstacles."""
+
+    def __init__(self, layout, left: float):
+        self.bounds = left + 4, 114, layout.width - 4, layout.height - 4
+        self.obstacles = [(node.x - 4, node.y - 4, node.x + node.width + 4,
+                           node.y + node.height + 4) for node in layout.nodes]
+        self.obstacles.extend((group.x + 12, group.y + 4, group.x + group.width - 12,
+                               group.y + group.header_height) for group in layout.groups)
+        # Four units cover the six-unit route halo and an active three-unit
+        # colored stroke with room for fractional coordinates.
+        self.routes = [(min(a[0], b[0]) - 4, min(a[1], b[1]) - 4,
+                        max(a[0], b[0]) + 4, max(a[1], b[1]) + 4)
+                       for edge in layout.edges for a, b in zip(edge.points, edge.points[1:])]
+        self.labels = []
+
+    @staticmethod
+    def _overlap(first, second):
+        return (max(0.0, min(first[2], second[2]) - max(first[0], second[0]))
+                * max(0.0, min(first[3], second[3]) - max(first[1], second[1])))
+
+    def position(self, item: EdgeLayout, label: str) -> str:
+        segments = list(zip(item.points, item.points[1:]))
+        segments = segments[1:-1] or segments
+        segments = sorted(segments, key=lambda segment: (
+            segment[0][1] != segment[1][1],
+            -(abs(segment[0][0] - segment[1][0]) + abs(segment[0][1] - segment[1][1]))))[:8]
+        half = text_width(label) * 11 * .67 / 2 + 2
+        best = None
+        for a, b in segments:
+            horizontal = a[1] == b[1]
+            axis = 0 if horizontal else 1
+            low, high = sorted((a[axis], b[axis]))
+            if high - low < 2 * half + 12:
+                continue
+            locations = ((low + high) / 2, low + half + 8, high - half - 8,
+                         low + (high - low) / 4, high - (high - low) / 4)
+            for location in dict.fromkeys(locations):
+                if not low + half + 4 <= location <= high - half - 4:
+                    continue
+                for offset in (-10, 18):
+                    x, y = (location, a[1] + offset) if horizontal else (a[0] + offset, location)
+                    # This conservative box includes the four-unit text halo.
+                    box = ((x - half, y - 14, x + half, y + 6) if horizontal else
+                           (x - 14, y - half, x + 6, y + half))
+                    left, top, right, bottom = self.bounds
+                    dx = max(0, left - box[0]) - max(0, box[2] - right)
+                    dy = max(0, top - box[1]) - max(0, box[3] - bottom)
+                    inside = dx == 0 and dy == 0
+                    if not inside:
+                        x, y = x + dx, y + dy
+                        box = box[0] + dx, box[1] + dy, box[2] + dx, box[3] + dy
+                    collision = (sum(self._overlap(box, obstacle) for obstacle in self.obstacles) * 4
+                                 + sum(self._overlap(box, route) for route in self.routes)
+                                 + sum(self._overlap(box, previous) for previous in self.labels) * 2)
+                    position = (f'x="{_number(x)}" y="{_number(y)}"' if horizontal else
+                                f'transform="translate({_number(x)} {_number(y)}) rotate(-90)"')
+                    if inside and collision == 0:
+                        self.labels.append(box)
+                        return position
+                    score = collision, not inside
+                    if best is None or score < best[0]:
+                        best = score, position, box
+        if best is not None:
+            self.labels.append(best[2])
+            return best[1]
+        # The original truncation leaves enough room on its longest segment.
+        # This branch also handles custom routers returning very short paths.
+        a, b = max(segments, key=lambda segment: abs(segment[0][0] - segment[1][0])
+                   + abs(segment[0][1] - segment[1][1]))
+        x, y = (a[0] + b[0]) / 2, (a[1] + b[1]) / 2
+        x = min(self.bounds[2] - half, max(self.bounds[0] + half, x))
+        y = min(self.bounds[3] - 6, max(self.bounds[1] + 14, y - 10))
+        self.labels.append((x - half, y - 14, x + half, y + 6))
+        return f'x="{_number(x)}" y="{_number(y)}"'
+
+
 def _render_edge(item: EdgeLayout, titles: dict[str, str], *, interactive: bool,
-                color_index: int | None = None) -> str:
+                color_index: int | None = None,
+                label_context: _EdgeLabelContext | None = None) -> str:
     edge = item.edge
     path = " ".join(("M" if index == 0 else "L") + _number(x) + " " + _number(y) for index, (x, y) in enumerate(item.points))
     row_attr = f' data-source-row="{_xml(edge.source_row)}"' if edge.source_row is not None else ""
@@ -432,6 +510,8 @@ def _render_edge(item: EdgeLayout, titles: dict[str, str], *, interactive: bool,
                     position = f'x="{_number(x)}" y="{_number(y - 6)}"'
                 else:
                     position = f'transform="translate({_number(x - 6)} {_number(y)}) rotate(-90)"'
+                if label_context is not None:
+                    position = label_context.position(item, label)
                 # Draw the background halo separately so older SVG renderers
                 # that ignore CSS paint-order still show readable lettering.
                 parts.append(f'<text class="edge-label-halo" {position} text-anchor="middle" aria-hidden="true">{_xml(label)}</text>')
@@ -458,7 +538,8 @@ def render_svg(graph: Graph, *, show_imports: bool = False,
     distinct color to each type reference, cycling after twelve connections.
     ``router`` selects a registered routing algorithm or a custom router class.
     ``layout`` selects node placement, which runs before edge routing.
-    ``layout_width`` sets the target pixel width for a vertical layout.
+    ``layout_width`` sets the vertical layout's width budget or an optional
+    hard canvas-width cap for ``optimized-with-space`` (automatic if omitted).
     ``treeshake`` omits unused definitions from imported schemas.
     """
     graph = filter_hidden(graph, hide)
@@ -473,7 +554,8 @@ def render_svg(graph: Graph, *, show_imports: bool = False,
     graph = Graph(graph.title, graph.nodes,
                   [edge for edge in graph.edges if edge.kind not in hidden_kinds],
                   graph.root_source_file)
-    web_vertical = get_layout_engine(layout).web_vertical
+    engine_type = get_layout_engine(layout)
+    web_vertical = engine_type.web_vertical
     layout = layout_graph(graph, router=router, layout=layout, layout_width=layout_width)
     color_indices: dict[int, int] = {}
     if color_type_edges:
@@ -571,7 +653,9 @@ def render_svg(graph: Graph, *, show_imports: bool = False,
         ])
     parts.append('<g class="edges">')
     titles = {node.node.id: node.node.title for node in layout.nodes}
-    parts.extend(_render_edge(edge, titles, interactive=interactive, color_index=color_indices.get(index))
+    label_context = _EdgeLabelContext(layout, left) if engine_type.route_clearance > 0 else None
+    parts.extend(_render_edge(edge, titles, interactive=interactive, color_index=color_indices.get(index),
+                             label_context=label_context)
                  for index, edge in enumerate(layout.edges))
     parts.append('</g><g class="nodes">')
     # Keep the DOM hierarchy consistent with the visual file boundaries.

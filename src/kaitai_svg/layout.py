@@ -14,9 +14,9 @@ import math
 import unicodedata
 
 from .model import Edge, Graph, Node, Row
-from .routing import PORT_OFFSET, Router, get_router
+from .routing import PORT_OFFSET, OrthogonalRouter, Router, get_router
 from .placement import LayoutEngine, get_layout_engine
-from .geometry import measure_paths
+from .geometry import measure_paths, parallel_conflict_length, path_segments
 
 
 @dataclass
@@ -161,7 +161,7 @@ def _wrap_text(text: str, limit: int, measure) -> list[str]:
     return result
 
 
-def _measure(node: Node) -> NodeLayout:
+def _measure(node: Node, *, column_widths: dict[str, float] | None = None) -> NodeLayout:
     # Cell widths adapt to the schema but stay bounded: large expressions wrap
     # instead of making a single type disproportionately wide.
     values = {
@@ -173,16 +173,25 @@ def _measure(node: Node) -> NodeLayout:
     enum = node.kind == "enum"
     bounds = ({"type": (72, 112), "id": (200, 328)} if enum else
               {"pos": (64, 96), "size": (94, 124), "type": (138, 224), "id": (158, 276)})
-    widths = {}
-    for key, (minimum, maximum) in bounds.items():
-        font_size = 13 if key == "id" else 12
-        desired = max((monospace_width(value) for value in values[key]), default=0) * font_size * .67 + 26
-        widths[key] = min(maximum, max(minimum, math.ceil(desired)))
-    width = max(320 if enum else 560, min(440 if enum else 720, sum(widths.values())))
-    # Preserve the compact numeric columns when distributing spare space.
-    difference = width - sum(widths.values())
-    widths["type"] += difference / 2
-    widths["id"] += difference / 2
+    if column_widths is None:
+        widths = {}
+        for key, (minimum, maximum) in bounds.items():
+            font_size = 13 if key == "id" else 12
+            desired = max((monospace_width(value) for value in values[key]), default=0) * font_size * .67 + 26
+            widths[key] = min(maximum, max(minimum, math.ceil(desired)))
+        width = max(320 if enum else 560, min(440 if enum else 720, sum(widths.values())))
+        # Preserve the compact numeric columns when distributing spare space.
+        difference = width - sum(widths.values())
+        widths["type"] += difference / 2
+        widths["id"] += difference / 2
+    else:
+        if set(column_widths) != set(bounds) or any(
+            not math.isfinite(value) or value < bounds[key][0]
+            for key, value in column_widths.items()
+        ):
+            raise ValueError("Table column widths must match the node and preserve readable minima")
+        widths = {key: column_widths[key] for key in bounds}
+        width = sum(widths.values())
     columns = []
     x = 0.0
     for key in bounds:
@@ -227,6 +236,115 @@ def _measure(node: Node) -> NodeLayout:
     if not rows:
         cursor += 24
     return NodeLayout(node, 0, 0, width, cursor, header_height, rows, title, subtitle, size_lines, columns, sections)
+
+
+def _measure_adaptive(node: Node, target_width: float) -> NodeLayout:
+    """Spend a card's width on the actual wrapping that determines row height.
+
+    Only wrap breakpoints can reduce a row's height. Evaluate those instead of
+    allocating pixels by longest string length, which wastes space on columns
+    that are not responsible for the tall rows. Numeric columns stay compact.
+    """
+    enum = node.kind == "enum"
+    minimums = ({"type": 72.0, "id": 200.0} if enum else
+                {"pos": 64.0, "size": 94.0, "type": 138.0, "id": 158.0})
+    maximum = 550 if enum else 900
+    width = max(sum(minimums.values()), min(maximum, target_width))
+    widths = dict(minimums)
+    values = {
+        "pos": [row.pos_label for row in node.rows],
+        "size": [row.size_label for row in node.rows],
+        "type": [row.type_label for row in node.rows],
+        "id": [row.label or row.id for row in node.rows],
+    }
+    options = {}
+    counts = {}
+    for key, minimum in minimums.items():
+        unit = (13 if key == "id" else 12) * .67
+        padding = 26 if key in ("id", "pos") or (enum and key == "type") else 20
+        upper = min(width - sum(minimums.values()) + minimum,
+                    {"pos": 96, "size": 124}.get(key, width))
+
+        def line_counts(limit):
+            return tuple(max(1 if key == "id" else 0, len(wrap_monospace(value, limit)))
+                         for value in values[key])
+
+        current = line_counts(int((minimum - padding) / unit))
+        counts[key] = current
+        choices = []
+        previous = current
+        for limit in range(int((minimum - padding) / unit) + 1, int((upper - padding) / unit) + 1):
+            candidate_width = float(math.ceil(padding + limit * unit))
+            if candidate_width > upper:
+                break
+            measured = line_counts(int((candidate_width - padding) / unit))
+            if measured != previous:
+                choices.append((candidate_width, measured))
+                previous = measured
+        options[key] = choices
+
+    while True:
+        remaining = width - sum(widths.values())
+        row_heights = [max(lines) for lines in zip(*counts.values())]
+        current_height = sum(row_heights)
+        best = None
+        for order, key in enumerate(widths):
+            for candidate_width, measured in options[key]:
+                extra = candidate_width - widths[key]
+                if extra <= 0 or extra > remaining + 1e-8:
+                    continue
+                line_gain = sum(counts[key]) - sum(measured)
+                if line_gain <= 0:
+                    continue
+                alternatives = [measured if column == key else counts[column] for column in widths]
+                height_gain = current_height - sum(max(lines) for lines in zip(*alternatives))
+                benefit = (16 * height_gain / extra, line_gain / extra, -extra, -order)
+                if best is None or benefit > best[0]:
+                    best = benefit, key, candidate_width, measured
+        if best is None:
+            break
+        _, key, widths[key], counts[key] = best
+
+    # Any spare width does not change wrapping; share it between text columns.
+    remaining = max(0.0, width - sum(widths.values()))
+    type_extra = min(remaining / 2, max(0.0, 112 - widths["type"])) if enum else remaining / 2
+    widths["type"] += type_extra
+    widths["id"] += remaining - type_extra
+    return _measure(node, column_widths=widths)
+
+
+def _text_height(nodes: list[NodeLayout]) -> float:
+    """Visible text height, excluding fixed padding and extra port clearance."""
+    return sum(20 * len(node.title_lines) + 14 * len(node.subtitle_lines)
+               + 15 * len(node.size_lines)
+               + sum(16 * max(len(row.label_lines), len(row.type_lines),
+                              len(row.pos_lines), len(row.size_lines))
+                     + 13 * len(row.detail_lines) for row in node.rows)
+               for node in nodes)
+
+
+def _reserve_port_space(nodes: list[NodeLayout], graph: Graph) -> None:
+    """Expand fresh measurements once, before placing cards or assigning ports."""
+    outgoing: dict[tuple[str, str | None], int] = defaultdict(int)
+    incoming: dict[str, int] = defaultdict(int)
+    for edge in graph.edges:
+        outgoing[(edge.source, edge.source_row)] += 1
+        incoming[edge.target] += 1
+    for node in nodes:
+        count = max(outgoing[(node.node.id, None)], incoming[node.node.id])
+        extra = max(0, 24 + 12 * (count - 1) - node.header_height)
+        node.header_height += extra
+        offset = extra
+        for section in node.sections:
+            section.y += offset
+            for row in section.rows:
+                row.y += offset
+                count = outgoing[(node.node.id, row.row.id)]
+                extra = max(0, 24 + 18 * (count - 1) - row.height)
+                row.height += extra
+                section.height += extra
+                offset += extra
+        node.height += offset
 
 
 def _ranks(graph: Graph) -> dict[str, int]:
@@ -410,8 +528,76 @@ def _place_file_groups(nodes: list[NodeLayout]) -> list[FileGroupLayout]:
     return [panel for panel in panels if panel.source_file]
 
 
+def _shorten_port_doglegs(edges: list[EdgeLayout], nodes: list[NodeLayout],
+                          groups: list[FileGroupLayout], clearance: float) -> None:
+    """Remove a terminal stair forced by the router's fixed anchor distance.
+
+    Routing and its reservations are already complete. The replacement keeps
+    both real ports and shortens only a horizontal stub, extending its incoming
+    vertical leg. Check both ends once and retain every geometric safeguard.
+    """
+    obstacles = [(node.x - 8, node.y - 8, node.x + node.width + 8, node.y + node.height + 8)
+                 for node in nodes]
+    obstacles.extend((group.x + 16, group.y + 8, group.x + group.width - 16,
+                      group.y + group.header_height - 8) for group in groups)
+
+    def intersects(a, b, c, d):
+        if a[1] == b[1] and c[1] == d[1]:
+            return a[1] == c[1] and max(min(a[0], b[0]), min(c[0], d[0])) <= min(max(a[0], b[0]), max(c[0], d[0]))
+        if a[0] == b[0] and c[0] == d[0]:
+            return a[0] == c[0] and max(min(a[1], b[1]), min(c[1], d[1])) <= min(max(a[1], b[1]), max(c[1], d[1]))
+        if a[1] != b[1]:
+            a, b, c, d = c, d, a, b
+        return min(a[0], b[0]) <= c[0] <= max(a[0], b[0]) and min(c[1], d[1]) <= a[1] <= max(c[1], d[1])
+
+    def self_intersects(points):
+        segments = path_segments(points)
+        return any(intersects(a, b, c, d) for i, (a, b) in enumerate(segments)
+                   for c, d in segments[i + 2:])
+
+    def interactions(points, index):
+        metrics = [measure_paths([points, edge.points]) for j, edge in enumerate(edges) if j != index]
+        near = math.fsum(parallel_conflict_length([points, edge.points], clearance)
+                         for j, edge in enumerate(edges) if j != index)
+        return (round(math.fsum(metric.shared_length for metric in metrics), 8),
+                round(near, 8), sum(metric.crossings for metric in metrics))
+
+    for index, edge in enumerate(edges):
+        for reverse in (False, True):
+            points = list(reversed(edge.points)) if reverse else edge.points
+            if len(points) < 4:
+                continue
+            a, b, c, d = points[-4:]
+            if not (a[1] == b[1] and b[0] == c[0] and c[1] == d[1]):
+                continue
+            # The new turn must lie inside the old horizontal port stub. This
+            # also requires the old first horizontal leg to run backwards.
+            if not min(c[0], d[0]) < a[0] < max(c[0], d[0]):
+                continue
+            stub = round(abs(d[0] - a[0]), 8)
+            if not clearance <= stub <= PORT_OFFSET:
+                continue
+            corner = a[0], d[1]
+            if any(left < a[0] < right
+                   and max(min(a[1], corner[1]), top) < min(max(a[1], corner[1]), bottom)
+                   for left, top, right, bottom in obstacles):
+                continue
+            candidate = _simplify([*points[:-3], corner, d])
+            if reverse:
+                candidate.reverse()
+            if self_intersects(candidate):
+                continue
+            before, after = measure_paths([edge.points]), measure_paths([candidate])
+            if not (after.bends < before.bends and round(after.length, 8) < round(before.length, 8)):
+                continue
+            old_cost, new_cost = interactions(edge.points, index), interactions(candidate, index)
+            if all(new <= old for old, new in zip(old_cost, new_cost)):
+                edge.points = candidate
+
+
 def _route_edges(graph: Graph, nodes: list[NodeLayout], groups: list[FileGroupLayout],
-                 router_type: type[Router], outgoing, incoming) -> list[EdgeLayout]:
+                 router_type: type[Router], outgoing, incoming, *,
+                 parallel_clearance: float = 0.0) -> list[EdgeLayout]:
     """Assign actual row/header ports again whenever node positions change."""
     by_id = {node.node.id: node for node in nodes}
     source_ports: dict[int, tuple[float, float]] = {}
@@ -437,11 +623,15 @@ def _route_edges(graph: Graph, nodes: list[NodeLayout], groups: list[FileGroupLa
                    for start, end in ports]
     anchors = [anchor for connection in connections for anchor in connection]
     routing = router_type(nodes, anchors, groups)
+    if parallel_clearance and isinstance(routing, OrthogonalRouter):
+        routing.set_parallel_clearance(parallel_clearance)
     paths = routing.route_all(connections)
     if len(paths) != len(graph.edges):
         raise ValueError("Router must return one path per connector")
     edges = [EdgeLayout(edge, _simplify([start, *path, end]))
              for edge, (start, end), path in zip(graph.edges, ports, paths)]
+    if parallel_clearance and isinstance(routing, OrthogonalRouter):
+        _shorten_port_doglegs(edges, nodes, groups, parallel_clearance)
     return edges
 
 
@@ -450,9 +640,9 @@ def layout_graph(graph: Graph, *, router: str | type[Router] = "default",
                  layout_width: float | None = None) -> Layout:
     """Measure, place, assign ports, route, and select a complete drawing.
 
-    The optimized engine offers a bounded shortlist, including the original
-    placement. Each candidate receives fresh ports and a fresh selected router.
-    Shared length, crossings, bends, route length and area decide the winner.
+    Each candidate receives fresh ports and a fresh selected router. Engines
+    may supply candidate-specific table measurements; keep the complete winning
+    geometry, not just its coordinates, together with the routes it produced.
     """
     router_type = get_router(router)
     engine_type = get_layout_engine(layout)
@@ -481,43 +671,33 @@ def layout_graph(graph: Graph, *, router: str | type[Router] = "default",
         incoming[edge.target].append(index)
         if edge.source_row is not None and not any(row.row.id == edge.source_row for row in by_id[edge.source].rows):
             raise ValueError(f"Connector references unknown row {edge.source_row!r} in {edge.source!r}")
-    # Ports occupy separate positions within their actual header or field.
-    # Expand unusually busy headers/fields instead of squeezing arrows together.
-    for node in nodes:
-        count = max(len(outgoing[(node.node.id, None)]), len(incoming[node.node.id]))
-        extra = max(0, 24 + 12 * (count - 1) - node.header_height)
-        node.header_height += extra
-        offset = extra
-        for section in node.sections:
-            section.y += offset
-            for row in section.rows:
-                row.y += offset
-                count = len(outgoing[(node.node.id, row.row.id)])
-                extra = max(0, 24 + 18 * (count - 1) - row.height)
-                row.height += extra
-                section.height += extra
-                offset += extra
-        node.height += offset
+    _reserve_port_space(nodes, graph)
     placements = engine.placements(graph, nodes)
     if not placements:
         raise ValueError("Layout engine must return at least one placement")
     best = None
     routing_error = None
     for placement in placements:
-        if len(placement.positions) != len(nodes):
+        candidate_nodes = placement.nodes if placement.nodes is not None else nodes
+        if len(candidate_nodes) != len(nodes) or any(
+            candidate.node is not original for candidate, original in zip(candidate_nodes, graph.nodes)
+        ):
+            raise ValueError("Layout measurements must preserve the input node order and identity")
+        if len(placement.positions) != len(candidate_nodes):
             raise ValueError("Layout engine must return one position per node")
-        for node, (x, y) in zip(nodes, placement.positions):
+        for node, (x, y) in zip(candidate_nodes, placement.positions):
             if not (math.isfinite(x) and math.isfinite(y) and x >= 0 and y >= 114):
                 raise ValueError("Layout positions must be finite and below the diagram caption")
             node.x, node.y = x, y
         groups = placement.groups
         try:
-            edges = _route_edges(graph, nodes, groups, router_type, outgoing, incoming)
+            edges = _route_edges(graph, candidate_nodes, groups, router_type, outgoing, incoming,
+                                 parallel_clearance=engine.route_clearance)
         except ValueError as error:
             routing_error = error
             continue
-        width = max([node.x + node.width for node in nodes] + [group.x + group.width for group in groups]) + 32
-        height = max([node.y + node.height for node in nodes] + [group.y + group.height for group in groups]) + 32
+        width = max([node.x + node.width for node in candidate_nodes] + [group.x + group.width for group in groups]) + 32
+        height = max([node.y + node.height for node in candidate_nodes] + [group.y + group.height for group in groups]) + 32
         width = max(680, width)
         # Keep outer connector tracks inside the tighter canvas margins.
         width = max([width, *(x + 8 for edge in edges for x, _ in edge.points)])
@@ -525,13 +705,14 @@ def layout_graph(graph: Graph, *, router: str | type[Router] = "default",
         if not engine.accepts_canvas(width, height):
             continue
         # The single-candidate default retains its original routes and cost.
-        score = (engine.score(measure_paths([edge.points for edge in edges]), width, height)
+        paths = [edge.points for edge in edges]
+        score = (engine.score_routes(measure_paths(paths), width, height, placement, paths)
                  if len(placements) > 1 else ())
         if best is None or score < best[0]:
-            best = score, placement, edges, width, height
+            best = score, placement, candidate_nodes, edges, width, height
     if best is None:
         raise routing_error or ValueError("Could not route any layout candidate within the requested width")
-    _, placement, edges, width, height = best
+    _, placement, nodes, edges, width, height = best
     for node, position in zip(nodes, placement.positions):
         node.x, node.y = position
     return Layout(nodes, edges, width, height, placement.groups)

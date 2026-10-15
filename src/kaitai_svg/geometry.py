@@ -69,3 +69,38 @@ def measure_paths(paths: Sequence[Sequence[Point]]) -> PathMetrics:
                     intersections.add((v1[0], h1[1]))
         crossings += len(intersections)
     return PathMetrics(math.fsum(shared), crossings, bends, length)
+
+
+def parallel_conflict_length(paths: Sequence[Sequence[Point]], clearance: float = 8.0) -> float:
+    """Measure parallel routes that are close enough to obscure each other.
+
+    Overlapping projections count in proportion to their clearance deficit:
+    exact shared lines count fully, while lines at least ``clearance`` apart
+    contribute nothing. Only segments belonging to distinct paths are compared.
+    Redundant grid subdivisions do not change the result.
+    """
+    try:
+        valid = (not isinstance(clearance, bool) and isinstance(clearance, (int, float))
+                 and math.isfinite(clearance) and clearance >= 0)
+    except OverflowError:
+        valid = False
+    if not valid:
+        raise ValueError("clearance must be a finite nonnegative number")
+    if clearance == 0:
+        return 0.0
+    conflicts = []
+    for first, second in combinations([path_segments(path) for path in paths], 2):
+        for a, b in first:
+            for c, d in second:
+                axis = (0 if a[1] == b[1] and c[1] == d[1] else
+                        1 if a[0] == b[0] and c[0] == d[0] else None)
+                if axis is None:
+                    continue
+                distance = round(abs(a[1 - axis] - c[1 - axis]), 8)
+                if distance >= clearance:
+                    continue
+                overlap = round(min(max(a[axis], b[axis]), max(c[axis], d[axis]))
+                                - max(min(a[axis], b[axis]), min(c[axis], d[axis])), 8)
+                if overlap > 0:
+                    conflicts.append(overlap * (1 - distance / clearance))
+    return round(math.fsum(conflicts), 8)

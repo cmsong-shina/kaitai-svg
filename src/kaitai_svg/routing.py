@@ -9,6 +9,7 @@ as they are added. No external layout engine or random seed is required.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from bisect import bisect_left, bisect_right
 from collections import defaultdict
 from collections.abc import Sequence
 import heapq
@@ -185,6 +186,7 @@ class OrthogonalRouter(DefaultRouter):
     bend_penalty = 35
     crossing_penalty = 160
     refinement_passes = 2
+    parallel_clearance = 0.0
 
     def __init__(self, nodes: list[NodeLayout], anchors: list[Point],
                  groups: list[FileGroupLayout] | None = None):
@@ -223,6 +225,62 @@ class OrthogonalRouter(DefaultRouter):
         self.clear.clear()  # Grid indices have changed.
         self._segment_use: dict[tuple[tuple[int, int], tuple[int, int]], int] = defaultdict(int)
         self._vertex_use: dict[tuple[int, int], int] = defaultdict(int)
+        self._base_xs, self._base_ys = self.xs[:], self.ys[:]
+        self._anchors = tuple(anchors)
+        self._near_segment_use: dict[tuple[tuple[int, int], tuple[int, int]], float] = {}
+        self._near_x: list[list[tuple[int, float]]] = []
+        self._near_y: list[list[tuple[int, float]]] = []
+
+    def set_parallel_clearance(self, clearance: float) -> None:
+        """Reserve visual space around parallel routes, including fixed stubs.
+
+        Configure before routing. Zero retains the original grid and objective;
+        a positive distance adds escape tracks and penalizes close parallel
+        segments without making otherwise valid connections impossible.
+        """
+        try:
+            valid = (not isinstance(clearance, bool) and isinstance(clearance, (int, float))
+                     and math.isfinite(clearance) and clearance >= 0)
+        except OverflowError:
+            valid = False
+        if not valid:
+            raise ValueError("parallel_clearance must be a finite nonnegative number")
+        if self._segment_use:
+            raise ValueError("parallel clearance must be configured before routing")
+        self.parallel_clearance = float(clearance)
+        xs, ys = set(self._base_xs), set(self._base_ys)
+        if clearance:
+            # Add obstacle boundaries and one clearance offset around anchors.
+            # More concentric obstacle tracks multiply the sparse grid without
+            # helping the narrow gaps that need these extra escape routes.
+            for left, top, right, bottom in self.obstacles:
+                xs.update(x for x in (left, right) if x >= 12)
+                ys.update(y for y in (top, bottom) if y >= 114)
+            for x, y in self._anchors:
+                xs.update(value for value in (x - clearance, x + clearance) if value >= 12)
+                ys.update(value for value in (y - clearance, y + clearance) if value >= 114)
+        self.xs, self.ys = sorted(xs), sorted(ys)
+        self.x_index = {value: index for index, value in enumerate(self.xs)}
+        self.y_index = {value: index for index, value in enumerate(self.ys)}
+        self.clear.clear()
+        self._near_segment_use.clear()
+
+        def neighbours(values):
+            return [[(other, 1 - abs(values[other] - value) / clearance)
+                     for other in range(bisect_right(values, value - clearance),
+                                        bisect_left(values, value + clearance))
+                     if other != index]
+                    for index, value in enumerate(values)] if clearance else []
+
+        self._near_x, self._near_y = neighbours(self.xs), neighbours(self.ys)
+
+    def _parallel_neighbours(self, a: tuple[int, int], b: tuple[int, int]):
+        if a[1] == b[1]:
+            for y, weight in self._near_y[a[1]]:
+                yield self._key((a[0], y), (b[0], y)), weight
+        else:
+            for x, weight in self._near_x[a[0]]:
+                yield self._key((x, a[1]), (x, b[1])), weight
 
     def _find(self, start: Point, end: Point) -> Path:
         # A horizontal incoming direction accounts for the source stub's bend.
@@ -260,6 +318,8 @@ class OrthogonalRouter(DefaultRouter):
                 length = abs(self.xs[x] - self.xs[nx]) + abs(self.ys[y] - self.ys[ny])
                 candidate = cost + length + (self.bend_penalty if axis != next_axis else 0)
                 candidate += self._segment_use.get(self._key(a, b), 0) * (600 + 12 * length)
+                if self.parallel_clearance:
+                    candidate += self._near_segment_use.get(self._key(a, b), 0) * (600 + 12 * length)
                 # Count a previously routed path once per occupied vertex,
                 # including bends and stubs, independent of traversal direction.
                 candidate += self.crossing_penalty * self._vertex_use.get(a, 0)
@@ -297,6 +357,13 @@ class OrthogonalRouter(DefaultRouter):
             self._segment_use[key] += delta
             if not self._segment_use[key]:
                 del self._segment_use[key]
+            if self.parallel_clearance:
+                for neighbour, weight in self._parallel_neighbours(a, b):
+                    used = self._near_segment_use.get(neighbour, 0.0) + delta * weight
+                    if used <= 1e-10:
+                        self._near_segment_use.pop(neighbour, None)
+                    else:
+                        self._near_segment_use[neighbour] = used
         for vertex in set(vertices):
             self._vertex_use[vertex] += delta
             if not self._vertex_use[vertex]:
@@ -310,7 +377,7 @@ class OrthogonalRouter(DefaultRouter):
                            for a, b in zip(vertices, vertices[1:]))
         return length + self.bend_penalty * bends
 
-    def _quality(self, paths: Sequence[Path]) -> tuple[float, float]:
+    def _quality(self, paths: Sequence[Path]) -> tuple[float, ...]:
         shared = math.fsum(count * (count - 1) / 2
                            * (abs(self.xs[a[0]] - self.xs[b[0]]) + abs(self.ys[a[1]] - self.ys[b[1]]))
                            for (a, b), count in self._segment_use.items() if count > 1)
@@ -318,6 +385,14 @@ class OrthogonalRouter(DefaultRouter):
         aesthetic = self.crossing_penalty * contacts + math.fsum(self._shape_cost(path) for path in paths)
         # Quantize only comparisons, avoiding spurious improvements from the
         # summation order of fractional gutter coordinates after a rip-up.
+        if self.parallel_clearance:
+            # Each pair is present from both directions. The deficit is its
+            # shared projection weighted by the missing fraction of clearance.
+            near = math.fsum(count * self._near_segment_use.get((a, b), 0.0)
+                             * (abs(self.xs[a[0]] - self.xs[b[0]])
+                                + abs(self.ys[a[1]] - self.ys[b[1]])) / 2
+                             for (a, b), count in self._segment_use.items())
+            return round(shared, 8), round(near, 8), round(aesthetic, 8)
         return round(shared, 8), round(aesthetic, 8)
 
     def _congestion(self, path: Path) -> int:
@@ -382,4 +457,3 @@ def get_router(router: str | type[Router]) -> type[Router]:
     if isinstance(router, type) and issubclass(router, Router) and not router.__abstractmethods__:
         return router
     raise ValueError("router must be a built-in name or a concrete Router subclass")
-

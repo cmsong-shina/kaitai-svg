@@ -105,6 +105,7 @@ enum을 SVG에서 제외합니다. 타입·enum 참조와 표현식에 명시된
 | ----------- | ----------------- | --------------------------------------------------------------------- |
 | `default`   | `DefaultLayout`   | 기존 파일별 크기 균형 배치. 파일 정보가 없는 그래프는 기존 계층형 배치 |
 | `optimized` | `OptimizedLayout` | 연결 관계를 고려한 배치 후보를 만들고 실제 라우팅 결과로 비교          |
+| `optimized-with-space` | `OptimizedWithSpaceLayout` | 표의 컬럼 폭과 줄바꿈, 카드·열·파일 그룹 사이 간격을 함께 조정 |
 | `vertical-optimized` | `VerticalOptimizedLayout` | 가로폭을 제한하고 파일 그룹을 세로로 배치해 웹페이지 스크롤에 맞춤 |
 
 ```sh
@@ -130,6 +131,57 @@ uv run kaitai-svg examples/sqlite3.ksy --layout optimized --router orthogonal
 면적은 마지막 기준이어서 연결선을 단순하게 만드는 대신 화면이 더 넓어질
 수 있습니다.
 
+화면 면적과 읽기 편한 표를 함께 고려하려면 `optimized-with-space`를 사용합니다.
+카드 안의 `pos`·`size`·`type`·`id` 컬럼 폭을 내용에 맞춰 배분하고, 바뀐 폭으로
+제목·셀·상세 설명을 다시 줄바꿈한 뒤 행 높이와 연결 포트를 계산합니다.
+카드 열 수와 배정, 카드·열·파일 그룹 사이 간격도 연결 관계와 혼잡도에 맞춰
+조정합니다. 글자 크기와 의미상 행 순서는 유지합니다.
+간격은 같은 통로에서 연결선 구간이 동시에 겹치는 정도로 계산합니다.
+높이가 다른 구간의 연결선은 통로를 재사용하고, 긴 참조는 실제로 꺾이는
+위치에 공간을 확보합니다. 카드별 세로 위치도 참조하는 행과 대상 헤더의
+포트에 맞춰 조정합니다. 혼잡한 배치는 여러 간격 후보를 실제 라우팅해 비교합니다.
+
+```sh
+uv run kaitai-svg examples/sqlite3.ksy --layout optimized-with-space --router orthogonal
+uv run kaitai-svg examples/sqlite3.ksy --layout optimized-with-space --layout-width 1440 --router orthogonal --interactive
+uv run kaitai-svg examples/sqlite3.ksy --layout optimized-with-space --layout-width 4000 --router orthogonal
+```
+
+폭을 생략하면 고정 가로폭 제한 없이 도면 크기를 자동 선택합니다.
+`--layout-width PIXELS`를 지정하면 **실제 라우팅 후의 SVG 전체 폭**을 해당 값
+이하로 제한합니다. 파일 테두리·연결선 우회 공간·바깥 여백까지 포함하며,
+지정한 폭을 가용 공간으로 삼아 열 수를 늘리고 도면 높이를 줄이는 후보를
+비교합니다. 열 수는 카드 수·측정 폭·필요한 통로 공간에 따라 결정하며,
+2열이나 4열로 제한하지 않습니다. 실제 도면 폭은 지정한 값보다 좁을 수 있습니다.
+최소 680px이 필요합니다. 읽기 위한 최소 폭이나 연결선 공간을 확보할 수
+없으면 오류를 내고 기존 출력 파일을 유지합니다. 이 모드는 일반 배치와 같은
+정적·interactive 표시 방식을 사용하며, 웹페이지 세로 스크롤 동작은
+`vertical-optimized`에서 제공합니다.
+
+자연 측정 폭의 **85%·100%·125%** 프로필을 읽기 위한 최소 폭과 일반 타입
+카드 900px·enum 카드 550px의 최대 폭 안에서 비교합니다. 내용에 따라 컬럼을
+재배분하고 실제 줄바꿈 높이를 계산하므로, 폭을 늘려 불필요한 줄바꿈을 줄이거나
+폭을 줄여 여러 카드를 더 조밀하게 배치할 수 있습니다. 빠른 근사 평가는 최대
+64개 후보로 제한하고, 서로 다른 폭·열·간격 구성을 포함해 **최대 6개 배치를
+실제 라우팅**합니다.
+
+`orthogonal` 라우터와 함께 사용하면 평행한 연결선 사이에 **8px 간격**을
+확보하는 경로를 탐색합니다. 포트에 붙는 짧은 선분도 포함하며, 배경 halo와
+강조된 선이 이웃 연결선을 가리는 구간을 평가합니다.
+연결선 라벨도 전체 경로·카드·파일 제목·다른 라벨을 확인해 빈 위치에 배치합니다.
+고정 라우팅 앵커 때문에 선 끝에 생긴 우회는 실제 카드 연결점을 유지하면서
+줄입니다. 장애물·선 간격·교차 수를 확인하고, 꺾임과 길이가 함께 줄어드는 경우에만 적용합니다.
+
+최종 선택에서는 **공유 선분 길이 → 평행선 간격 부족량**을 먼저 줄이고,
+같은 경우 정규화한 교차 수,
+꺾임 수, 경로 길이, 화면 면적, 텍스트 높이의 합을 최소화합니다. 연결선 하나당
+교차·꺾임과 자연 측정 카드 크기를 기준으로 경로 길이를 비교하며, 면적은 자연
+측정 카드 면적의 합, 텍스트 높이는 기본 폭에서 측정한 줄바꿈 결과를 기준으로 합니다.
+폭을 지정한 경우 공간 비용은 가용 폭 × 도면 높이로 계산하여, 넓은 폭을
+활용해 높이를 줄이는 배치가 최종 비교에 반영되도록 합니다.
+이 때문에 교차가 조금 늘더라도 화면이 크게 작아지는 배치를 선택할 수 있으며,
+과도한 줄바꿈으로 카드가 길어지는 배치에는 비용을 부여합니다.
+
 웹페이지처럼 가로폭이 제한되고 세로로 스크롤할 수 있는 화면에는
 `vertical-optimized`를 사용합니다. 기본 가로폭 예산은 **1,200px**이며,
 `--layout-width`로 변경할 수 있습니다.
@@ -147,7 +199,8 @@ uv run kaitai-svg examples/sqlite3.ksy --layout vertical-optimized --layout-widt
 작은 배치를 고릅니다. 높이에 상한은 두지 않으며, 최종 SVG는 예산보다 좁을
 수 있습니다.
 
-`--layout-width PIXELS`는 `vertical-optimized`에서만 사용하는 양의 정수 값입니다.
+`--layout-width PIXELS`는 `vertical-optimized`와 `optimized-with-space`에서
+사용하는 양의 정수 값입니다. `vertical-optimized`에서는
 상단 설명 영역 때문에 최소 680px이 필요하며, 측정된 카드와 필요한 여백을
 담기에 너무 좁으면 필요한 폭을 안내하는 오류를 냅니다.
 글자나 표를 억지로 줄여 넣지 않으므로 긴 식별자·표현식이 있는 스키마는 더 넓은
@@ -177,22 +230,28 @@ SQLite 예제의 15개 카드·24개 연결선을 `orthogonal` 라우터로 비�
 
 | 배치        | 공유 선분 길이 | 교차 수 | 꺾임 수 | 경로 길이  | 화면 크기       | 계산 시간 |
 | ----------- | -------------- | ------- | ------- | ---------- | --------------- | --------- |
-| `default`   | 0              | 63      | 100     | 42,465.5   | 2,270 × 2,316   | 약 1.26초 |
-| `optimized` | 0              | 30      | 62      | 27,416.75  | 4,518 × 2,259   | 약 3.61초 |
-| `vertical-optimized` | 0       | 37      | 96      | 36,177.5   | 783 × 5,346     | 약 2.01초 |
+| `default`   | 0              | 71      | 98      | 41,932.25  | 2,232 × 2,189   | 약 2.01초 |
+| `optimized` | 0              | 30      | 62      | 27,004.75  | 4,474 × 2,177   | 약 3.88초 |
+| `optimized-with-space` | 0   | 25      | 82      | 21,767.05  | 3,671 × 1,391   | 약 14.84초 |
+| `vertical-optimized` | 0       | 38      | 96      | 35,767.5   | 745 × 5,194     | 약 1.68초 |
 
-세로 배치는 기본 1,200px 예산으로 측정했습니다. 이 예제의 실제 폭은 783px로,
+`optimized-with-space`는 폭 제한 없이 측정했습니다. `optimized`에 비해 폭은
+약 18%, 면적은 약 48% 줄었으며, 교차는 5개 줄고 꺾임은 20개 늘었습니다.
+
+세로 배치는 기본 1,200px 예산으로 측정했습니다. 이 예제의 실제 폭은 745px로,
 가용 폭을 모두 채우지는 않습니다. `optimized`에 비해 가로폭이 줄어든 대신
 도면이 길어지고 교차·꺾임이 늘었습니다.
 
-다음 명령은 SVG 파일을 변경하지 않고 세 배치의 경로 지표와 화면 크기·계산
-시간을 비교합니다.
+다음 명령은 SVG 파일을 변경하지 않고 모든 배치의 경로 지표와 화면 크기·계산
+시간을 비교합니다. JSON의 `parallel_conflict_length`는 평행선 사이 8px 간격이
+부족한 구간의 가중 길이이며, 배경 halo에 가려지는 근접 경로를 확인할 수 있습니다.
 
 ```sh
 uv run python tests/compare_layouts.py examples/sqlite3.ksy --router orthogonal
 ```
 
-세로 배치의 비교 폭도 바꾸려면 `--layout-width 960`처럼 추가합니다.
+세로 배치의 비교 폭과 `optimized-with-space`의 최대 폭을 함께 지정하려면
+`--layout-width 960`처럼 추가합니다. 기존 `default`·`optimized`의 폭은 유지합니다.
 
 
 ### 연결선 라우터
@@ -200,7 +259,8 @@ uv run python tests/compare_layouts.py examples/sqlite3.ksy --router orthogonal
 `--router <router-name>`으로 연결선 경로 계산 방법을 선택합니다. 두 라우터
 모두 배치된 노드와 파일 그룹 제목 영역을 피해 수평·수직 경로를 만듭니다.
 라우터는 노드를 이동하지 않으며, `--layout optimized`와
-`--layout vertical-optimized`는 선택한 라우터의 결과를 비교해 배치를 고릅니다.
+`--layout optimized-with-space`·`--layout vertical-optimized`는 선택한 라우터의
+결과를 비교해 배치를 고릅니다.
 import·중첩 정의 표시, 색상, interactive
 옵션과 함께 사용할 수 있습니다.
 
@@ -397,9 +457,19 @@ output = convert(Path("examples/sqlite3.ksy"), router=CustomRouter)
 `kaitai_svg.placement.Placement`의 유한 목록을 반환합니다. 각 후보의
 `positions`에는 입력 노드 순서대로 `(x, y)`를 하나씩, `groups`에는 해당
 후보의 파일 그룹 사각형과 제목 정보를 넣습니다. `nodes`에는 표 측정과 포트
-공간 확장이 끝난 치수가 전달됩니다. 크기·행 순서를 보존하고 카드·그룹의
-충돌과 제목 침범을 방지해야 합니다. 후보마다 새 라우터를 생성하며, 마지막에
-선택한 후보의 좌표와 연결선이 SVG에 반영됩니다.
+공간 확장이 끝난 치수가 전달됩니다. 기본적으로 크기·행 순서를 보존하고
+카드·그룹의 충돌과 제목 침범을 방지해야 합니다. 폭을 다시 측정하는 엔진은
+`Placement.nodes`에 독립적인 측정 결과를 선택적으로 넣을 수 있습니다.
+원본 `Node` 객체와 입력 노드 순서, 의미상 행 순서를 유지하고, 배치 전에
+새 행·헤더 치수에 필요한 포트 공간도 확보해야 합니다. 기존 두 인자 생성자는
+계속 사용할 수 있습니다. 후보마다 새 라우터를 생성하며, 선택한 후보의
+표·행·그룹 치수와 좌표·연결선을 함께 SVG에 반영합니다.
+
+후보별 측정 정보를 평가하려면 `score_placement(metrics, width, height, placement)`를
+재정의합니다. 기본 구현은 기존 `score(metrics, width, height)`에 위임합니다.
+완성된 연결선 좌표까지 평가하려면
+`score_routes(metrics, width, height, placement, paths)`를 재정의합니다.
+기본 구현은 `score_placement()`에 위임합니다.
 
 `Router`를 직접 구현할 때는 추상 메서드
 `__init__(nodes, anchors, groups=None)`와 `route(start, end)`를 구현합니다.
@@ -451,6 +521,8 @@ Chromium에서는 실제 터치 스와이프도 확인했습니다. 결과와 �
 수 있습니다. `browser_check.py`는 테스트 fixture와 SQLite 예제의
 정적·interactive SVG를 Chromium 또는 Firefox에서 검사합니다.
 `browser_type_colors.py`는 연결선 색상과 강조를 확인합니다.
+`browser_space_layout.py`는 적응형 배치의 자동·지정 폭, 긴 영문·한글·enum 셀,
+실제 글꼴 경계와 키보드·확대 조작을 검사합니다.
 
 ```sh
 uv run --with playwright==1.64.0 python -m playwright install chromium firefox
@@ -460,7 +532,9 @@ uv run --with playwright==1.64.0 python tests/browser_type_colors.py --browser c
 uv run --with playwright==1.64.0 python tests/browser_type_colors.py --browser firefox
 uv run --with playwright==1.64.0 python tests/browser_vertical_layout.py --browser chromium
 uv run --with playwright==1.64.0 python tests/browser_vertical_layout.py --browser firefox
+uv run --with playwright==1.64.0 python tests/browser_space_layout.py --browser all --router all
 ```
 
 결과 JSON과 스크린샷은 Git에서 제외되는 `.scratch/browser-qa/`에 저장됩니다.
+적응형 배치 검사의 결과는 `.scratch/space-layout-qa/`에 저장됩니다.
 Playwright와 브라우저는 선택형 개발 도구이며 패키지의 실행 의존성이 아닙니다.

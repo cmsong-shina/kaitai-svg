@@ -16,7 +16,7 @@ import sys
 from time import perf_counter
 from types import SimpleNamespace
 
-from kaitai_svg.geometry import measure_paths, path_segments
+from kaitai_svg.geometry import measure_paths, parallel_conflict_length, path_segments
 from kaitai_svg.layout import layout_graph
 from kaitai_svg.loader import SchemaError, load_graph
 from kaitai_svg.model import Graph
@@ -118,7 +118,7 @@ def main() -> int:
     parser.add_argument("-I", "--import-path", type=Path, action="append", default=[])
     parser.add_argument("--router", choices=tuple(ROUTERS), default="orthogonal")
     parser.add_argument("--layout-width", type=int,
-                        help="width budget for the vertical layout; other layouts keep their existing sizing")
+                        help="width budget for vertical-optimized and hard width cap for optimized-with-space; omitted values use each layout's default")
     parser.add_argument("--show-imports", action="store_true")
     parser.add_argument("--show-nested-types", action="store_true")
     parser.add_argument("--hide", action="append", default=[], metavar="ID|FILENAME")
@@ -131,14 +131,16 @@ def main() -> int:
             for name in LAYOUTS:
                 start = perf_counter()
                 drawing = layout_graph(graph, router=args.router, layout=name,
-                                       layout_width=args.layout_width if LAYOUTS[name].web_vertical else None)
+                                       layout_width=args.layout_width if LAYOUTS[name].supports_width_limit else None)
                 seconds = perf_counter() - start
-                metrics = measure_paths([edge.points for edge in drawing.edges])
+                paths = [edge.points for edge in drawing.edges]
+                metrics = measure_paths(paths)
                 results.append({
                     "source": str(source), "layout": name, "router": args.router,
                     "nodes": len(graph.nodes), "edges": len(graph.edges),
                     "proper_crossings": metrics.crossings,
                     "shared_length": round(metrics.shared_length, 3),
+                    "parallel_conflict_length": round(parallel_conflict_length(paths), 3),
                     "bends": metrics.bends, "length": round(metrics.length, 3),
                     "width": round(drawing.width, 3), "height": round(drawing.height, 3),
                     "area": round(drawing.width * drawing.height, 3),

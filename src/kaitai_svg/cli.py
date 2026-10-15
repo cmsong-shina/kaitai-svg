@@ -50,7 +50,11 @@ def convert_file(path: str | Path, import_paths: Sequence[str | Path] = (), *,
                  layout_width: float | None = None,
                  hide: Sequence[str | Path] = (), treeshake: bool = False,
                  out_dir: str | Path | None = None) -> Path:
-    """Validate dependencies, then atomically write the SVG to the output directory."""
+    """Validate dependencies, then atomically write the SVG to the output directory.
+
+    ``layout_width`` is a width budget for ``vertical-optimized`` or an optional
+    hard canvas-width cap for ``optimized-with-space``.
+    """
     source = Path(path).resolve()
     if source.suffix.lower() != ".ksy":
         raise SchemaError(f"Expected a .ksy schema: {source}")
@@ -125,9 +129,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--router", choices=tuple(ROUTERS), default="default",
                         help="edge routing algorithm: default preserves existing routes; orthogonal optimizes crossings, shared paths and bends")
     parser.add_argument("--layout", choices=tuple(LAYOUTS), default="default",
-                        help="node placement algorithm: default preserves positions; optimized arranges connected definitions; vertical-optimized fits a web page width")
+                        help="node placement algorithm: default preserves positions; optimized arranges connected definitions; optimized-with-space adapts table columns and gaps; vertical-optimized fits a web page width")
     parser.add_argument("--layout-width", type=_positive_pixels, metavar="PIXELS",
-                        help="target width in pixels for vertical-optimized layout (default: 1200); tall content grows vertically")
+                        help="width budget for vertical-optimized (default: 1200), or a hard canvas-width cap for optimized-with-space (default: automatic); minimum 680 pixels")
     parser.add_argument("--hide", action="append", default=[], metavar="ID|FILENAME",
                         help="exclude an element ID (optionally qualified with ::) or all elements from a .ksy file; repeat for multiple exclusions")
     parser.add_argument("--treeshake", action="store_true",

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from contextlib import redirect_stderr, redirect_stdout
+from contextlib import chdir, redirect_stderr, redirect_stdout
 from io import StringIO
 from unittest import mock
 import unittest
@@ -41,6 +41,77 @@ class CliTests(SchemaTestCase):
         self.assertEqual(status, 0, errors)
         self.assert_svg(first.with_suffix(".svg"))
         self.assert_svg(second.with_suffix(".svg"))
+
+    def test_out_dir_creates_directory_and_flattens_glob_outputs(self):
+        first = self.schema("schemas/first.ksy", "meta: {id: first}\n")
+        second = self.schema("schemas/nested/second.ksy", "meta: {id: second}\n")
+        destination = self.tmp_path / "output folder" / "svgs"
+        status, stdout, errors = self.invoke(
+            "--out-dir", str(destination), str(first.parent / "**" / "*.ksy"), str(first),
+        )
+        self.assertEqual(status, 0, errors)
+        self.assertEqual(stdout.splitlines(), [str(destination / "first.svg"),
+                                               str(destination / "second.svg")])
+        for source in (first, second):
+            self.assert_svg(destination / source.with_suffix(".svg").name)
+            self.assertFalse(source.with_suffix(".svg").exists())
+
+    def test_out_dir_python_api_resolves_relative_path_and_preserves_import_lookup(self):
+        source = self.schema("schemas/packet.ksy", "meta: {id: packet, imports: [common]}\n")
+        self.schema("schemas/common.ksy", "meta: {id: common}\n")
+        with chdir(self.tmp_path):
+            output = convert(source, out_dir="output")
+        self.assertEqual(output, self.tmp_path / "output" / "packet.svg")
+        self.assert_svg(output)
+        self.assertFalse(source.with_suffix(".svg").exists())
+
+    def test_out_dir_expands_home_directory(self):
+        source = self.schema("packet.ksy", "meta: {id: packet}\n")
+        with mock.patch.dict("os.environ", {"HOME": str(self.tmp_path),
+                                           "USERPROFILE": str(self.tmp_path)}):
+            status, _, errors = self.invoke(str(source), "--out-dir", "~/output")
+        self.assertEqual(status, 0, errors)
+        self.assert_svg(self.tmp_path / "output" / "packet.svg")
+
+    def test_out_dir_collision_preserves_output_and_processes_other_inputs(self):
+        first = self.schema("first/packet.ksy", "meta: {id: first}\n")
+        second = self.schema("second/packet.ksy", "meta: {id: second}\n")
+        valid = self.schema("valid.ksy", "meta: {id: valid}\n")
+        existing = self.schema("output/packet.svg", "previous output")
+        status, _, errors = self.invoke(str(first), str(second), str(valid),
+                                        "--out-dir", str(existing.parent))
+        self.assertEqual(status, 1)
+        self.assertIn("collision", errors)
+        self.assertIn(str(first), errors)
+        self.assertIn(str(second), errors)
+        self.assertEqual(existing.read_text(encoding="utf-8"), "previous output")
+        self.assert_svg(existing.parent / "valid.svg")
+
+    def test_out_dir_file_reports_error(self):
+        source = self.schema("packet.ksy", "meta: {id: packet}\n")
+        destination = self.schema("output", "existing file")
+        status, _, errors = self.invoke(str(source), "--out-dir", str(destination))
+        self.assertEqual(status, 1)
+        self.assertIn("output", errors)
+        self.assertEqual(destination.read_text(encoding="utf-8"), "existing file")
+        self.assertFalse(source.with_suffix(".svg").exists())
+
+    def test_out_dir_invalid_schema_does_not_create_directory(self):
+        source = self.schema("broken.ksy", "meta: {id: broken}\nseq: invalid\n")
+        destination = self.tmp_path / "output"
+        status, _, _ = self.invoke(str(source), "--out-dir", str(destination))
+        self.assertEqual(status, 1)
+        self.assertFalse(destination.exists())
+
+    def test_out_dir_failed_replace_preserves_output_and_cleans_temporary(self):
+        source = self.schema("packet.ksy", "meta: {id: packet}\n")
+        output = self.schema("output/packet.svg", "previous output")
+        with mock.patch("kaitai_svg.cli.os.replace", side_effect=PermissionError("locked")):
+            status, _, errors = self.invoke(str(source), "--out-dir", str(output.parent))
+        self.assertEqual(status, 1)
+        self.assertIn("locked", errors)
+        self.assertEqual(output.read_text(encoding="utf-8"), "previous output")
+        self.assertEqual(list(output.parent.iterdir()), [output])
 
     def test_unicode_input_directory_and_filename(self):
         source = self.schema("한글 폴더/패킷.ksy", "meta: {id: packet}\n")

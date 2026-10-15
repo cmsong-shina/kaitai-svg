@@ -28,7 +28,14 @@ SVG는 입력 `.ksy` 파일 옆에 같은 이름으로 저장됩니다. 위 명�
 ```sh
 uv run kaitai-svg path/to/schema.ksy
 uv run kaitai-svg "schemas/**/*.ksy" -I ./format-library
+uv run kaitai-svg "schemas/**/*.ksy" --out-dir ./output
 ```
+
+`--out-dir DIR`을 지정하면 입력 파일의 디렉터리 구조와 관계없이 해당 폴더에
+`<입력 파일명>.svg`로 저장합니다. 폴더가 없으면 상위 폴더까지 자동으로
+생성하며, 상대 경로는 현재 작업 디렉터리를 기준으로 합니다. 여러 입력의 출력
+파일명이 겹치면 해당 입력들은 건너뛰고 오류를 보고하며, 나머지는 변환합니다.
+기존 SVG는 검증과 렌더링에 성공한 뒤 원자적으로 교체합니다.
 
 `uv`를 사용하지 않는 경우 저장소에서 `python -m pip install .`을 실행한 뒤
 `kaitai-svg` 명령을 사용할 수 있습니다. `python -m kaitai_svg`와
@@ -284,6 +291,7 @@ source = Path("examples/sqlite3.ksy")
 output = convert(
     source, interactive=True, layout="optimized", router="orthogonal",
     color_type_edges=True, hide=["vlq_base128_be.ksy"], treeshake=True,
+    out_dir="output",
 )
 
 # SVG 문자열만 필요한 경우

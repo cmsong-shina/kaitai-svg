@@ -47,8 +47,9 @@ def convert_file(path: str | Path, import_paths: Sequence[str | Path] = (), *,
                  interactive: bool = False, color_type_edges: bool = False,
                  router: str | type[Router] = "default",
                  layout: str | type[LayoutEngine] = "default",
-                 hide: Sequence[str | Path] = (), treeshake: bool = False) -> Path:
-    """Validate all dependencies before atomically replacing the sibling SVG."""
+                 hide: Sequence[str | Path] = (), treeshake: bool = False,
+                 out_dir: str | Path | None = None) -> Path:
+    """Validate dependencies, then atomically write the SVG to the output directory."""
     source = Path(path).resolve()
     if source.suffix.lower() != ".ksy":
         raise SchemaError(f"Expected a .ksy schema: {source}")
@@ -71,11 +72,13 @@ def convert_file(path: str | Path, import_paths: Sequence[str | Path] = (), *,
     svg = render_svg(graph, show_imports=show_imports, show_nested_types=show_nested_types,
                      interactive=interactive, color_type_edges=color_type_edges,
                      router=router, layout=layout, hide=selectors, treeshake=treeshake)
-    output = source.with_suffix(".svg")
+    output_dir = source.parent if out_dir is None else Path(out_dir).expanduser().resolve()
+    output = output_dir / source.with_suffix(".svg").name
+    output_dir.mkdir(parents=True, exist_ok=True)
     temporary: Path | None = None
     try:
         with tempfile.NamedTemporaryFile(
-            mode="w", encoding="utf-8", newline="\n", dir=source.parent,
+            mode="w", encoding="utf-8", newline="\n", dir=output_dir,
             prefix=f".{source.stem}.", suffix=".svg.tmp", delete=False,
         ) as handle:
             temporary = Path(handle.name)
@@ -90,10 +93,12 @@ def convert_file(path: str | Path, import_paths: Sequence[str | Path] = (), *,
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="kaitai-svg",
-        description="Validate Kaitai Struct schemas and create static SVGs beside them, with optional interactivity.",
+        description="Validate Kaitai Struct schemas and create static SVGs beside them or in --out-dir, with optional interactivity.",
         epilog='Example: kaitai-svg "schemas/**/*.ksy" -I ./format-library',
     )
     parser.add_argument("patterns", nargs="+", help=".ksy files or glob patterns (quote globs)")
+    parser.add_argument("--out-dir", metavar="DIR",
+                        help="output directory (created if missing); default: beside each input")
     parser.add_argument("-I", "--import-path", action="append", default=[], metavar="DIR",
                         help="import search directory; repeat for multiple directories")
     parser.add_argument("--show-imports", action="store_true",
@@ -115,6 +120,16 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     args = parser.parse_args(argv)
     paths, errors = expand_inputs(args.patterns)
+    if args.out_dir is not None:
+        outputs: dict[str, list[Path]] = {}
+        for path in paths:
+            outputs.setdefault(os.path.normcase(path.with_suffix(".svg").name), []).append(path)
+        collisions = {name for name, sources in outputs.items() if len(sources) > 1}
+        for name in sorted(collisions):
+            sources = ", ".join(str(path) for path in outputs[name])
+            errors.append(f"Output filename collision for {name}: {sources}")
+        paths = [path for path in paths
+                 if os.path.normcase(path.with_suffix(".svg").name) not in collisions]
     for message in errors:
         print(f"error: {message}", file=sys.stderr)
     failed = bool(errors)
@@ -124,7 +139,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                                   show_nested_types=args.show_nested_types, interactive=args.interactive,
                                   color_type_edges=args.color_type_edges, router=args.router,
                                   layout=args.layout,
-                                  hide=args.hide, treeshake=args.treeshake)
+                                  hide=args.hide, treeshake=args.treeshake,
+                                  out_dir=args.out_dir)
         except (SchemaError, OSError, ValueError, RecursionError) as exc:
             print(f"error: {path}: {exc}", file=sys.stderr)
             failed = True

@@ -117,6 +117,8 @@ def main() -> int:
     parser.add_argument("schemas", type=Path, nargs="+")
     parser.add_argument("-I", "--import-path", type=Path, action="append", default=[])
     parser.add_argument("--router", choices=tuple(ROUTERS), default="orthogonal")
+    parser.add_argument("--layout-width", type=int,
+                        help="width budget for the vertical layout; other layouts keep their existing sizing")
     parser.add_argument("--show-imports", action="store_true")
     parser.add_argument("--show-nested-types", action="store_true")
     parser.add_argument("--hide", action="append", default=[], metavar="ID|FILENAME")
@@ -128,7 +130,8 @@ def main() -> int:
             graph = filtered_graph(source, args)
             for name in LAYOUTS:
                 start = perf_counter()
-                drawing = layout_graph(graph, router=args.router, layout=name)
+                drawing = layout_graph(graph, router=args.router, layout=name,
+                                       layout_width=args.layout_width if LAYOUTS[name].web_vertical else None)
                 seconds = perf_counter() - start
                 metrics = measure_paths([edge.points for edge in drawing.edges])
                 results.append({

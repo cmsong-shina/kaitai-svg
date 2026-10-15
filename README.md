@@ -105,6 +105,7 @@ enum을 SVG에서 제외합니다. 타입·enum 참조와 표현식에 명시된
 | ----------- | ----------------- | --------------------------------------------------------------------- |
 | `default`   | `DefaultLayout`   | 기존 파일별 크기 균형 배치. 파일 정보가 없는 그래프는 기존 계층형 배치 |
 | `optimized` | `OptimizedLayout` | 연결 관계를 고려한 배치 후보를 만들고 실제 라우팅 결과로 비교          |
+| `vertical-optimized` | `VerticalOptimizedLayout` | 가로폭을 제한하고 파일 그룹을 세로로 배치해 웹페이지 스크롤에 맞춤 |
 
 ```sh
 uv run kaitai-svg examples/sqlite3.ksy --layout optimized --router orthogonal
@@ -123,11 +124,44 @@ uv run kaitai-svg examples/sqlite3.ksy --layout optimized --router orthogonal
 4개 배치를 실제 라우팅**합니다. 노드 겹침 방지와 파일 그룹 제목 영역의
 여백을 유지합니다.
 
-최종 선택은 **공유 선분 길이 → 교차 수 → 꺾임 수 → 경로 길이 → 화면
+`optimized`의 최종 선택은 **공유 선분 길이 → 교차 수 → 꺾임 수 → 경로 길이 → 화면
 면적** 순서로 비교합니다. 앞선 값이 같을 때만 다음 값을 고려하므로,
 동일한 라우터를 사용한 기존 배치보다 이 비교 기준이 나빠지지 않습니다.
 면적은 마지막 기준이어서 연결선을 단순하게 만드는 대신 화면이 더 넓어질
 수 있습니다.
+
+웹페이지처럼 가로폭이 제한되고 세로로 스크롤할 수 있는 화면에는
+`vertical-optimized`를 사용합니다. 기본 가로폭 예산은 **1,200px**이며,
+`--layout-width`로 변경할 수 있습니다.
+
+```sh
+uv run kaitai-svg examples/sqlite3.ksy --layout vertical-optimized --router orthogonal
+uv run kaitai-svg examples/sqlite3.ksy --layout vertical-optimized --layout-width 960 --router orthogonal
+uv run kaitai-svg examples/sqlite3.ksy --layout vertical-optimized --layout-width 1440 --router orthogonal --interactive
+```
+
+파일 그룹은 위아래로 쌓고, 그룹 안의 카드 열 수와 순서를 가용 폭과 연결 관계에
+맞춰 조정합니다. 표의 행 순서와 측정된 글자 크기는 유지합니다. 폭 예산에는
+카드·파일 테두리뿐 아니라 연결선 우회 공간과 바깥 여백도 포함합니다. 폭에 맞는
+후보 중 최대 4개를 실제 라우팅해 연결선 품질을 비교하고, 품질이 같으면 높이가
+작은 배치를 고릅니다. 높이에 상한은 두지 않으며, 최종 SVG는 예산보다 좁을
+수 있습니다.
+
+`--layout-width PIXELS`는 `vertical-optimized`에서만 사용하는 양의 정수 값입니다.
+상단 설명 영역 때문에 최소 680px이 필요하며, 측정된 카드와 필요한 여백을
+담기에 너무 좁으면 필요한 폭을 안내하는 오류를 냅니다.
+글자나 표를 억지로 줄여 넣지 않으므로 긴 식별자·표현식이 있는 스키마는 더 넓은
+폭이 필요할 수 있습니다.
+
+이 배치의 정적·interactive SVG는 `max-width: 100%; height: auto`로 페이지
+폭에 맞추며, 세로 전체를 스크롤할 수 있는 높이를 유지합니다. 지정한 폭은 SVG
+좌표 기준의 명목상 픽셀 값입니다. 좁은 화면에서는 SVG 전체가 축소되며,
+브라우저에서 카드가 다시 배치되지는 않습니다. 배치 자체를 바꾸려면 허용되는
+폭 범위에서 `--layout-width` 값을 바꾸어 다시 생성하세요.
+
+세로 배치의 `--interactive`에서는 기본 휠 동작으로 페이지를 스크롤하고,
+**Ctrl/Command + 휠**로 도면을 확대·축소합니다. 마우스 드래그로 도면을 이동할
+수 있으며, 터치에서는 세로 스크롤과 브라우저의 핀치 확대를 사용합니다.
 
 인터페이스 `LayoutEngine`과 구현은
 [`src/kaitai_svg/placement.py`](src/kaitai_svg/placement.py)에 있습니다.
@@ -145,21 +179,29 @@ SQLite 예제의 15개 카드·24개 연결선을 `orthogonal` 라우터로 비�
 | ----------- | -------------- | ------- | ------- | ---------- | --------------- | --------- |
 | `default`   | 0              | 63      | 100     | 42,465.5   | 2,270 × 2,316   | 약 1.26초 |
 | `optimized` | 0              | 30      | 62      | 27,416.75  | 4,518 × 2,259   | 약 3.61초 |
+| `vertical-optimized` | 0       | 37      | 96      | 36,177.5   | 783 × 5,346     | 약 2.01초 |
 
-다음 명령은 SVG 파일을 변경하지 않고 두 배치의 경로 지표와 화면 크기·계산
+세로 배치는 기본 1,200px 예산으로 측정했습니다. 이 예제의 실제 폭은 783px로,
+가용 폭을 모두 채우지는 않습니다. `optimized`에 비해 가로폭이 줄어든 대신
+도면이 길어지고 교차·꺾임이 늘었습니다.
+
+다음 명령은 SVG 파일을 변경하지 않고 세 배치의 경로 지표와 화면 크기·계산
 시간을 비교합니다.
 
 ```sh
 uv run python tests/compare_layouts.py examples/sqlite3.ksy --router orthogonal
 ```
 
+세로 배치의 비교 폭도 바꾸려면 `--layout-width 960`처럼 추가합니다.
+
 
 ### 연결선 라우터
 
 `--router <router-name>`으로 연결선 경로 계산 방법을 선택합니다. 두 라우터
 모두 배치된 노드와 파일 그룹 제목 영역을 피해 수평·수직 경로를 만듭니다.
-라우터는 노드를 이동하지 않으며, `--layout optimized`는 선택한 라우터의
-결과를 비교해 배치를 고릅니다. import·중첩 정의 표시, 색상, interactive
+라우터는 노드를 이동하지 않으며, `--layout optimized`와
+`--layout vertical-optimized`는 선택한 라우터의 결과를 비교해 배치를 고릅니다.
+import·중첩 정의 표시, 색상, interactive
 옵션과 함께 사용할 수 있습니다.
 
 | 이름         | 구현               | 동작                                                                     |
@@ -221,8 +263,10 @@ uv run python tests/compare_routers.py examples/sqlite3.ksy
     필드에 마우스를 올리거나 포커스를 주면 그 필드의 연결만 강조합니다.
     연결선을 호버하거나 Tab으로 포커스를 주면 연결 라벨과 출발·도착 타입
     문서를 표시합니다.
--   interactive 모드에서 휠로 확대/축소하고 드래그로 이동할 수 있습니다. SVG
-    안의 초기화 버튼으로 전체 보기를 복원합니다.
+-   interactive 모드에서 휠로 확대/축소하고 드래그로 이동할 수 있습니다.
+    `vertical-optimized`에서는 기본 휠로 페이지를 스크롤하며
+    Ctrl/Command + 휠로 확대/축소합니다. SVG 안의 초기화 버튼으로 전체 보기를
+    복원합니다.
 
 
 ### 표의 위치와 크기
@@ -300,7 +344,7 @@ svg_text = render_svg(graph, interactive=True)
 ```
 
 `convert`와 `render_svg`에는 CLI의 `show_imports`, `show_nested_types`,
-`color_type_edges`, `layout`, `router`, `hide`, `treeshake` 옵션을 같은 이름의 키워드 인수로 전달할
+`color_type_edges`, `layout`, `layout_width`, `router`, `hide`, `treeshake` 옵션을 같은 이름의 키워드 인수로 전달할
 수 있습니다. import 검색 경로는 `convert`와 `load_graph`의 `import_paths`로
 지정합니다. `layout="default"`, `router="default"`가 기본값이며 등록되지 않은
 이름은 `ValueError`를 발생시킵니다. Python API에는 이름 대신 구체적인
@@ -314,6 +358,24 @@ output = convert(
     Path("examples/sqlite3.ksy"),
     layout=OptimizedLayout,
     router=OrthogonalRouter,
+)
+```
+
+가로폭을 지정하는 세로 배치도 이름이나 `VerticalOptimizedLayout` 클래스로
+선택할 수 있습니다. `layout_width`를 생략하면 1,200을 사용하며,
+세로 배치에서만 지정할 수 있습니다. Python API는 유한한 양수 픽셀 값을 받으며,
+최소 폭은 CLI와 같습니다.
+
+```python
+output = convert(
+    Path("examples/sqlite3.ksy"),
+    layout="vertical-optimized",
+    layout_width=960,
+    router="orthogonal",
+)
+
+svg_text = render_svg(
+    graph, layout="vertical-optimized", layout_width=960, router="orthogonal",
 )
 ```
 
@@ -369,13 +431,20 @@ uv build
 변환도 검사합니다. Node.js가 설치되어 있으면 생성된 SVG 스크립트의 상호작용
 검사를 추가로 실행합니다. Node.js가 없으면 해당 검사만 건너뜁니다.
 
-배치 기능 추가 후 Windows/Python 3.12에서 단위 테스트 130개와 wheel·소스
+세로 배치 기능 추가 후 Windows/Python 3.12에서 단위 테스트 160개와 wheel·소스
 배포물 빌드, wheel의 배치 이름·클래스 선택 검사를 통과했습니다. 기본 배치는
 두 예제에서 이전 코드의 좌표·연결선과 일치하며, 예제별 16개 표시 옵션의 SVG
 문자열도 일치했습니다. Chromium 156 / Firefox 157에서 두 배치의
 정적·interactive 렌더링, 연결 24개·카드 15개, 포커스 강조·문서 툴팁과
 JavaScript 오류 부재를 확인했습니다. 이번 배치 검증의 결과와 스크린샷은
 `.scratch/layout-qa/`에 있습니다.
+
+세로 배치는 Chromium 156 / Firefox 157에서 기본 1,200px·지정 1,440px,
+정적·interactive, 데스크톱·모바일의 16가지 조합을 확인했습니다. 가로 넘침
+없이 원래 비율과 세로 높이를 유지하며, 일반 휠 스크롤·Ctrl+휠 확대,
+화면 밖 요소로의 키보드 포커스 이동·툴팁 내부 스크롤을 검사했습니다.
+Chromium에서는 실제 터치 스와이프도 확인했습니다. 결과와 스크린샷은
+`.scratch/vertical-qa/`에 있습니다.
 
 실제 화면과 글꼴, 포인터·키보드 동작은
 [Playwright](https://playwright.dev/python/docs/intro) 브라우저 검사로 확인할
@@ -389,6 +458,8 @@ uv run --with playwright==1.64.0 python tests/browser_check.py --browser chromiu
 uv run --with playwright==1.64.0 python tests/browser_check.py --browser firefox
 uv run --with playwright==1.64.0 python tests/browser_type_colors.py --browser chromium
 uv run --with playwright==1.64.0 python tests/browser_type_colors.py --browser firefox
+uv run --with playwright==1.64.0 python tests/browser_vertical_layout.py --browser chromium
+uv run --with playwright==1.64.0 python tests/browser_vertical_layout.py --browser firefox
 ```
 
 결과 JSON과 스크린샷은 Git에서 제외되는 `.scratch/browser-qa/`에 저장됩니다.

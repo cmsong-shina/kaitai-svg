@@ -8,7 +8,7 @@ from pathlib import Path
 import re
 
 from .layout import EdgeLayout, NodeLayout, RowLayout, layout_graph, text_width
-from .placement import LayoutEngine
+from .placement import LayoutEngine, get_layout_engine
 from .model import Graph
 from .palette import TYPE_EDGE_COLORS
 from .routing import Router
@@ -254,6 +254,44 @@ _SCRIPT = r"""
 """
 
 
+def _vertical_interaction_script() -> str:
+    """Adapt canvas controls to a naturally scrolling web document."""
+    return (_SCRIPT
+            .replace("  function deferHide() { clearTimeout(hideTimer); hideTimer = setTimeout(hide, 180); }",
+                     "  function deferHide() { clearTimeout(hideTimer); hideTimer = setTimeout(() => { if (active !== document.activeElement) hide(); }, 180); }")
+            .replace("  function local(clientX, clientY) {", """  function visibleBounds() {
+    const bounds = svg.getBoundingClientRect();
+    const left = Math.max(0, bounds.left), top = Math.max(0, bounds.top);
+    const right = Math.min(window.innerWidth, bounds.right), bottom = Math.min(window.innerHeight, bounds.bottom);
+    return {left, top, right, bottom, width: right - left, height: bottom - top};
+  }
+  function local(clientX, clientY) {""")
+            .replace("const bounds = svg.getBoundingClientRect(), matrix = svg.getScreenCTM();",
+                     "const bounds = visibleBounds(), matrix = svg.getScreenCTM();")
+            .replace("    const box = svg.getBoundingClientRect();\n    zoom(",
+                     "    const box = visibleBounds();\n    zoom(")
+            .replace("    if (event.target.closest('.tooltip-layer')) return;\n    event.preventDefault();",
+                     "    if (!(event.ctrlKey || event.metaKey) || event.target.closest('.tooltip-layer')) return;\n    event.preventDefault();")
+            .replace("    if (event.button !== 0 || event.target.closest('.controls, .tooltip-layer')) return;",
+                     "    if (event.pointerType === 'touch' || event.button !== 0 || event.target.closest('.controls, .tooltip-layer')) return;")
+            .replace("  svg.addEventListener('pointerover', event => {\n    const item =",
+                     "  svg.addEventListener('pointerover', event => {\n    if (active && document.activeElement === active) return;\n    const item =")
+            .replace("  arrangeControls();\n})();",
+                     """  window.addEventListener('scroll', event => {
+    if (event.target?.closest?.('.tooltip-layer')) return;
+    arrangeControls();
+    if (active && document.activeElement === active) {
+      const box = active.getBoundingClientRect(), bounds = visibleBounds();
+      if (box.bottom > bounds.top && box.top < bounds.bottom && box.right > bounds.left && box.left < bounds.right) {
+        positionTip(box.right, box.top); return;
+      }
+    }
+    hide();
+  }, {passive: true, capture: true});
+  arrangeControls();
+})();"""))
+
+
 def _xml(value: object) -> str:
     # XML 1.0 rejects some Unicode code points accepted in Python strings.
     value = re.sub(r"[^\x09\x0a\x0d\x20-\ud7ff\ue000-\ufffd\U00010000-\U0010ffff]", "\ufffd", str(value))
@@ -407,6 +445,7 @@ def render_svg(graph: Graph, *, show_imports: bool = False,
                color_type_edges: bool = False,
                router: str | type[Router] = "default",
                layout: str | type[LayoutEngine] = "default",
+               layout_width: float | None = None,
                hide: Sequence[str | Path] = (), treeshake: bool = False) -> str:
     """Return a static SVG, or opt into browser controls with ``interactive``.
 
@@ -419,6 +458,7 @@ def render_svg(graph: Graph, *, show_imports: bool = False,
     distinct color to each type reference, cycling after twelve connections.
     ``router`` selects a registered routing algorithm or a custom router class.
     ``layout`` selects node placement, which runs before edge routing.
+    ``layout_width`` sets the target pixel width for a vertical layout.
     ``treeshake`` omits unused definitions from imported schemas.
     """
     graph = filter_hidden(graph, hide)
@@ -433,7 +473,8 @@ def render_svg(graph: Graph, *, show_imports: bool = False,
     graph = Graph(graph.title, graph.nodes,
                   [edge for edge in graph.edges if edge.kind not in hidden_kinds],
                   graph.root_source_file)
-    layout = layout_graph(graph, router=router, layout=layout)
+    web_vertical = get_layout_engine(layout).web_vertical
+    layout = layout_graph(graph, router=router, layout=layout, layout_width=layout_width)
     color_indices: dict[int, int] = {}
     if color_type_edges:
         # Semantic order keeps colors independent of routing and other edge
@@ -470,6 +511,15 @@ def render_svg(graph: Graph, *, show_imports: bool = False,
         caption += " · Hover/Tab: docs · Wheel: zoom · Drag: pan"
         root_attrs = 'xmlns:xhtml="http://www.w3.org/1999/xhtml" width="100%" height="100%" tabindex="-1"'
         css += _INTERACTIVE_CSS
+    if web_vertical:
+        # Keep an intrinsic aspect ratio so embedding in a narrow web page
+        # shrinks the width and gives the full diagram its natural height.
+        root_attrs = f'width="{width}" height="{height}" style="max-width:100%;height:auto;display:block"'
+        if interactive:
+            root_attrs += ' xmlns:xhtml="http://www.w3.org/1999/xhtml" tabindex="-1"'
+            css += '\nsvg { touch-action: pan-y pinch-zoom; }\n'
+            description = description.replace("Scroll to zoom", "Scroll to read, Ctrl/Command+scroll to zoom")
+            caption = caption.replace("Wheel: zoom", "Ctrl/Command+Wheel: zoom")
     for index, color in enumerate(palette):
         css += (f'\n.type-edge-color-{index} .edge-path {{ stroke: {color}; }}'
                 f'\n.type-edge-color-{index} .port {{ fill: {color}; }}\n')
@@ -535,7 +585,9 @@ def render_svg(graph: Graph, *, show_imports: bool = False,
         for action, x, button_width, label, glyph in (("out", 0, 36, "Zoom out", "−"), ("in", 42, 36, "Zoom in", "+"), ("reset", 84, 54, "Reset view (0)", "Reset")):
             text_class = ' class="reset-text"' if action == "reset" else ""
             parts.append(f'<g class="control" data-action="{action}" transform="translate({x} 0)" tabindex="0" role="button" aria-label="{label}"><title>{label}</title><rect width="{button_width}" height="34" rx="7"/><text{text_class} x="{button_width / 2:g}" y="17">{glyph}</text></g>')
-        parts.extend(['</g>', '<g id="tooltip" class="tooltip-layer" role="tooltip"><foreignObject width="440" height="300"><xhtml:div class="tooltip-box"/></foreignObject></g>',
-                      f'<script><![CDATA[{_SCRIPT}]]></script>'])
+        tooltip_box = ('<div xmlns="http://www.w3.org/1999/xhtml" class="tooltip-box"></div>'
+                       if web_vertical else '<xhtml:div class="tooltip-box"/>')
+        parts.extend(['</g>', f'<g id="tooltip" class="tooltip-layer" role="tooltip"><foreignObject width="440" height="300">{tooltip_box}</foreignObject></g>',
+                      f'<script><![CDATA[{_vertical_interaction_script() if web_vertical else _SCRIPT}]]></script>'])
     parts.append('</svg>')
     return "\n".join(parts) + "\n"

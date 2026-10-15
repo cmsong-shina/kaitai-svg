@@ -446,7 +446,8 @@ def _route_edges(graph: Graph, nodes: list[NodeLayout], groups: list[FileGroupLa
 
 
 def layout_graph(graph: Graph, *, router: str | type[Router] = "default",
-                 layout: str | type[LayoutEngine] = "default") -> Layout:
+                 layout: str | type[LayoutEngine] = "default",
+                 layout_width: float | None = None) -> Layout:
     """Measure, place, assign ports, route, and select a complete drawing.
 
     The optimized engine offers a bounded shortlist, including the original
@@ -455,8 +456,12 @@ def layout_graph(graph: Graph, *, router: str | type[Router] = "default",
     """
     router_type = get_router(router)
     engine_type = get_layout_engine(layout)
+    engine = engine_type()
+    if layout_width is not None:
+        engine.set_width_limit(layout_width)
     if not graph.nodes:
-        return Layout([], [], 720, 260)
+        width, height = engine.empty_size()
+        return Layout([], [], width, height)
     ids = [node.id for node in graph.nodes]
     if len(set(ids)) != len(ids):
         raise ValueError("Graph contains duplicate node IDs")
@@ -493,7 +498,7 @@ def layout_graph(graph: Graph, *, router: str | type[Router] = "default",
                 section.height += extra
                 offset += extra
         node.height += offset
-    placements = engine_type().placements(graph, nodes)
+    placements = engine.placements(graph, nodes)
     if not placements:
         raise ValueError("Layout engine must return at least one placement")
     best = None
@@ -514,13 +519,19 @@ def layout_graph(graph: Graph, *, router: str | type[Router] = "default",
         width = max([node.x + node.width for node in nodes] + [group.x + group.width for group in groups]) + 88
         height = max([node.y + node.height for node in nodes] + [group.y + group.height for group in groups]) + 88
         width = max(680, width)
+        if engine.web_vertical:
+            # Include actual outer routes when applying the web width limit.
+            width = max([width, *(x + 8 for edge in edges for x, _ in edge.points)])
+            height = max([height, *(y + 8 for edge in edges for _, y in edge.points)])
+        if not engine.accepts_canvas(width, height):
+            continue
         # The single-candidate default retains its original routes and cost.
-        score = ((*measure_paths([edge.points for edge in edges]).quality, width * height)
+        score = (engine.score(measure_paths([edge.points for edge in edges]), width, height)
                  if len(placements) > 1 else ())
         if best is None or score < best[0]:
             best = score, placement, edges, width, height
     if best is None:
-        raise routing_error or ValueError("Could not route any layout candidate")
+        raise routing_error or ValueError("Could not route any layout candidate within the requested width")
     _, placement, edges, width, height = best
     for node, position in zip(nodes, placement.positions):
         node.x, node.y = position

@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING
 from .model import Edge, Graph, Node
 
 if TYPE_CHECKING:
+    from .geometry import PathMetrics
     from .layout import FileGroupLayout, NodeLayout
 
 
@@ -32,6 +33,20 @@ class LayoutEngine(ABC):
     Layout orchestration recomputes ports and routes each returned candidate,
     then retains the best complete drawing. Keep candidate lists bounded.
     """
+
+    web_vertical = False
+
+    def set_width_limit(self, width: float) -> None:
+        raise ValueError("layout_width is supported only by the vertical-optimized layout")
+
+    def empty_size(self) -> tuple[float, float]:
+        return 720, 260
+
+    def accepts_canvas(self, width: float, height: float) -> bool:
+        return True
+
+    def score(self, metrics: PathMetrics, width: float, height: float) -> tuple:
+        return (*metrics.quality, width * height)
 
     @abstractmethod
     def placements(self, graph: Graph, nodes: list[NodeLayout]) -> Sequence[Placement]:
@@ -63,6 +78,7 @@ class OptimizedLayout(DefaultLayout):
 
     max_routed_candidates = 4
     max_local_candidates = 64
+    column_spacing = 180
 
     def placements(self, graph: Graph, nodes: list[NodeLayout]) -> list[Placement]:
         from .layout import _ranks
@@ -220,7 +236,7 @@ class OptimizedLayout(DefaultLayout):
         for name, columns in panels:
             widths = [max(nodes[i].width for i in column) for column in columns]
             padding = 24 if framed else 0
-            width = sum(widths) + 180 * (len(columns) - 1) + 2 * padding
+            width = sum(widths) + self.column_spacing * (len(columns) - 1) + 2 * padding
             title = name or "Types"
             lines = wrap_text(title, max(1, int((width - 190) / (15 * .67))))
             header = 44 + 19 * max(0, len(lines) - 1) if framed else 0
@@ -232,7 +248,7 @@ class OptimizedLayout(DefaultLayout):
                 for i in column:
                     local[i], membership[i] = (x, y), j
                     y += nodes[i].height + 48
-                x += column_width + 180
+                x += column_width + self.column_spacing
             if align and len(columns) > 1:
                 offsets = [0.0] * len(columns)
                 limit = max(y + nodes[i].height for i, (_, y) in local.items())
@@ -301,9 +317,166 @@ class OptimizedLayout(DefaultLayout):
         return 600 * crossings + 400 * backward + length + .15 * math.sqrt(width * height)
 
 
+class VerticalOptimizedLayout(OptimizedLayout):
+    """Fit a web content width, allowing the document to grow vertically.
+
+    File panels occupy one vertical lane. Card columns are admitted only when
+    their measured widths, gutters and outer routing space fit the width limit.
+    No wide legacy placement is eligible as a fallback. Up to four candidates
+    are actually routed; within the width bound, route quality precedes height.
+    """
+
+    web_vertical = True
+    width_limit = 1200
+    column_spacing = 96
+
+    def set_width_limit(self, width: float) -> None:
+        try:
+            valid = (not isinstance(width, bool) and isinstance(width, (int, float))
+                     and math.isfinite(width) and width > 0)
+        except OverflowError:
+            valid = False
+        if not valid:
+            raise ValueError("layout_width must be a finite positive number")
+        self.width_limit = width
+
+    def _check_width(self, minimum: float) -> None:
+        self.set_width_limit(self.width_limit)
+        if self.width_limit < minimum:
+            raise ValueError(f"layout_width {self.width_limit:g} is too narrow; "
+                             f"at least {minimum:g} pixels are required for readable cards and routing space")
+
+    def empty_size(self) -> tuple[float, float]:
+        self._check_width(680)
+        return min(720, self.width_limit), 260
+
+    def accepts_canvas(self, width: float, height: float) -> bool:
+        return width <= self.width_limit + 1e-8
+
+    def score(self, metrics: PathMetrics, width: float, height: float) -> tuple:
+        return (*metrics.quality, height, width)
+
+    def placements(self, graph: Graph, nodes: list[NodeLayout]) -> list[Placement]:
+        from .layout import _ranks
+
+        if not nodes:
+            self.empty_size()
+            return [Placement([], [])]
+        framed = any(node.node.source_file for node in nodes)
+        # x=64, optional 24px panel padding on each side, and 88px on the
+        # right protect ports, outer tracks, arrowheads and the diagram caption.
+        margin = 200 if framed else 152
+        self._check_width(max(680, max(node.width for node in nodes) + margin))
+        indices = {node.node.id: i for i, node in enumerate(nodes)}
+        edges = [(indices[edge.source], indices[edge.target], edge.source_row) for edge in graph.edges]
+        buckets: dict[str, list[int]] = defaultdict(list)
+        self._internal_edges = defaultdict(list)
+        for i, node in enumerate(nodes):
+            buckets[node.node.source_file].append(i)
+        for a, b, row in edges:
+            if nodes[a].node.source_file == nodes[b].node.source_file:
+                self._internal_edges[nodes[a].node.source_file].append((a, b, row))
+        file_edges = [Edge(nodes[a].node.source_file, nodes[b].node.source_file)
+                      for a, b, _ in edges if nodes[a].node.source_file != nodes[b].node.source_file]
+        file_ranks = _ranks(Graph("Files", [Node(name, name) for name in buckets], file_edges))
+        file_order = {name: i for i, name in enumerate(buckets)}
+        files = sorted(buckets, key=lambda name: (
+            name != graph.root_source_file if graph.root_source_file else False,
+            file_ranks[name], file_order[name]))
+        ranks = _ranks(graph)
+        ordered = {}
+        for name in files:
+            members = buckets[name]
+            ordered[name] = [members[0], *sorted(members[1:], key=lambda i: (ranks[nodes[i].node.id], i))]
+
+        def fits(columns) -> bool:
+            width = (sum(max(nodes[i].width for i in column) for column in columns)
+                     + self.column_spacing * (len(columns) - 1) + margin)
+            return width <= self.width_limit + 1e-8
+
+        def columns_for(members, count, balanced):
+            columns = [[] for _ in range(count)]
+            heights = [0.0] * count
+            for order, i in enumerate(members):
+                column = (min(range(count), key=lambda j: (heights[j], j)) if balanced else
+                          min(count - 1, order * count // len(members)))
+                columns[column].append(i)
+                heights[column] += nodes[i].height + 48
+            return columns
+
+        baseline_panels = [(name, [ordered[name][:]]) for name in files]
+        baseline = self._pack(baseline_panels, nodes, edges, 1, False)
+        pool = {tuple(baseline.positions): (self._proxy(baseline, nodes, edges), baseline)}
+
+        def add(panels, align=False):
+            if not all(fits(columns) for _, columns in panels):
+                return
+            candidate = self._pack(panels, nodes, edges, 1, align)
+            signature = tuple(candidate.positions)
+            if signature not in pool:
+                pool[signature] = self._proxy(candidate, nodes, edges), candidate
+
+        configurations = []
+        for maximum in range(1, 5):
+            for balanced in (False, True):
+                panels = []
+                for name in files:
+                    members = ordered[name]
+                    choices = [columns_for(members, count, balanced)
+                               for count in range(1, min(maximum, len(members)) + 1)]
+                    columns = next(columns for columns in reversed(choices) if fits(columns))
+                    panels.append((name, columns))
+                panels = self._order(panels, nodes, edges)
+                # Keep each file's leading definition at the start of its panel.
+                for name, columns in panels:
+                    first = buckets[name][0]
+                    for column in columns:
+                        if first in column:
+                            column.remove(first)
+                    columns[0].insert(0, first)
+                for align in (False, True):
+                    add(panels, align)
+                    configurations.append((self._proxy(self._pack(panels, nodes, edges, 1, align), nodes, edges),
+                                           panels, align))
+        # Candidate changes remain confined to the existing width-safe panels.
+        budget = self.max_local_candidates
+        for _, panels, align in sorted(configurations, key=lambda item: item[0])[:2]:
+            for p, (name, columns) in enumerate(panels):
+                for c, column in enumerate(columns):
+                    for row in range(len(column) - 1):
+                        if budget <= 0:
+                            break
+                        if column[row] == buckets[name][0]:
+                            continue
+                        changed = self._copy(panels)
+                        target = changed[p][1][c]
+                        target[row:row + 2] = reversed(target[row:row + 2])
+                        add(changed, align)
+                        budget -= 1
+            for p in range(len(panels) - 1):
+                if budget <= 0:
+                    break
+                if p == 0 and panels[0][0] == graph.root_source_file:
+                    continue
+                changed = self._copy(panels)
+                changed[p], changed[p + 1] = changed[p + 1], changed[p]
+                add(changed, align)
+                budget -= 1
+        alternatives = [entry for key, entry in pool.items() if key != tuple(baseline.positions)]
+        alternatives.sort(key=lambda entry: entry[0])
+        return [baseline, *(candidate for _, candidate in alternatives[:self.max_routed_candidates - 1])]
+
+    def _proxy(self, placement: Placement, nodes, edges) -> float:
+        height = max(y + node.height for node, (_, y) in zip(nodes, placement.positions))
+        if not edges:
+            return height
+        return super()._proxy(placement, nodes, edges) + .02 * height
+
+
 LAYOUTS: dict[str, type[LayoutEngine]] = {
     "default": DefaultLayout,
     "optimized": OptimizedLayout,
+    "vertical-optimized": VerticalOptimizedLayout,
 }
 
 

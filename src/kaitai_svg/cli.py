@@ -47,6 +47,7 @@ def convert_file(path: str | Path, import_paths: Sequence[str | Path] = (), *,
                  interactive: bool = False, color_type_edges: bool = False,
                  router: str | type[Router] = "default",
                  layout: str | type[LayoutEngine] = "default",
+                 layout_width: float | None = None,
                  hide: Sequence[str | Path] = (), treeshake: bool = False,
                  out_dir: str | Path | None = None) -> Path:
     """Validate dependencies, then atomically write the SVG to the output directory."""
@@ -71,7 +72,8 @@ def convert_file(path: str | Path, import_paths: Sequence[str | Path] = (), *,
         selectors.append(selector)
     svg = render_svg(graph, show_imports=show_imports, show_nested_types=show_nested_types,
                      interactive=interactive, color_type_edges=color_type_edges,
-                     router=router, layout=layout, hide=selectors, treeshake=treeshake)
+                     router=router, layout=layout, layout_width=layout_width,
+                     hide=selectors, treeshake=treeshake)
     output_dir = source.parent if out_dir is None else Path(out_dir).expanduser().resolve()
     output = output_dir / source.with_suffix(".svg").name
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -88,6 +90,17 @@ def convert_file(path: str | Path, import_paths: Sequence[str | Path] = (), *,
         if temporary is not None:
             temporary.unlink(missing_ok=True)
     return output
+
+
+def _positive_pixels(value: str) -> int:
+    """Parse a positive pixel budget before any conversion or output writes."""
+    try:
+        width = int(value)
+    except ValueError:
+        raise argparse.ArgumentTypeError("must be a positive integer number of pixels") from None
+    if width <= 0:
+        raise argparse.ArgumentTypeError("must be a positive integer number of pixels")
+    return width
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -112,7 +125,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--router", choices=tuple(ROUTERS), default="default",
                         help="edge routing algorithm: default preserves existing routes; orthogonal optimizes crossings, shared paths and bends")
     parser.add_argument("--layout", choices=tuple(LAYOUTS), default="default",
-                        help="node placement algorithm: default preserves existing positions; optimized arranges connected definitions before routing")
+                        help="node placement algorithm: default preserves positions; optimized arranges connected definitions; vertical-optimized fits a web page width")
+    parser.add_argument("--layout-width", type=_positive_pixels, metavar="PIXELS",
+                        help="target width in pixels for vertical-optimized layout (default: 1200); tall content grows vertically")
     parser.add_argument("--hide", action="append", default=[], metavar="ID|FILENAME",
                         help="exclude an element ID (optionally qualified with ::) or all elements from a .ksy file; repeat for multiple exclusions")
     parser.add_argument("--treeshake", action="store_true",
@@ -138,7 +153,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             output = convert_file(path, args.import_path, show_imports=args.show_imports,
                                   show_nested_types=args.show_nested_types, interactive=args.interactive,
                                   color_type_edges=args.color_type_edges, router=args.router,
-                                  layout=args.layout,
+                                  layout=args.layout, layout_width=args.layout_width,
                                   hide=args.hide, treeshake=args.treeshake,
                                   out_dir=args.out_dir)
         except (SchemaError, OSError, ValueError, RecursionError) as exc:

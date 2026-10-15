@@ -12,6 +12,7 @@ from collections.abc import Sequence
 
 from . import __version__
 from .loader import SchemaError, load_graph
+from .placement import LAYOUTS, LayoutEngine
 from .render import render_svg
 from .routing import ROUTERS, Router
 
@@ -45,6 +46,7 @@ def convert_file(path: str | Path, import_paths: Sequence[str | Path] = (), *,
                  show_imports: bool = False, show_nested_types: bool = False,
                  interactive: bool = False, color_type_edges: bool = False,
                  router: str | type[Router] = "default",
+                 layout: str | type[LayoutEngine] = "default",
                  hide: Sequence[str | Path] = (), treeshake: bool = False) -> Path:
     """Validate all dependencies before atomically replacing the sibling SVG."""
     source = Path(path).resolve()
@@ -68,7 +70,7 @@ def convert_file(path: str | Path, import_paths: Sequence[str | Path] = (), *,
         selectors.append(selector)
     svg = render_svg(graph, show_imports=show_imports, show_nested_types=show_nested_types,
                      interactive=interactive, color_type_edges=color_type_edges,
-                     router=router, hide=selectors, treeshake=treeshake)
+                     router=router, layout=layout, hide=selectors, treeshake=treeshake)
     output = source.with_suffix(".svg")
     temporary: Path | None = None
     try:
@@ -104,6 +106,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                         help="give each type connection a distinct high-contrast color; reuse colors after 12")
     parser.add_argument("--router", choices=tuple(ROUTERS), default="default",
                         help="edge routing algorithm: default preserves existing routes; orthogonal optimizes crossings, shared paths and bends")
+    parser.add_argument("--layout", choices=tuple(LAYOUTS), default="default",
+                        help="node placement algorithm: default preserves existing positions; optimized arranges connected definitions before routing")
     parser.add_argument("--hide", action="append", default=[], metavar="ID|FILENAME",
                         help="exclude an element ID (optionally qualified with ::) or all elements from a .ksy file; repeat for multiple exclusions")
     parser.add_argument("--treeshake", action="store_true",
@@ -119,6 +123,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             output = convert_file(path, args.import_path, show_imports=args.show_imports,
                                   show_nested_types=args.show_nested_types, interactive=args.interactive,
                                   color_type_edges=args.color_type_edges, router=args.router,
+                                  layout=args.layout,
                                   hide=args.hide, treeshake=args.treeshake)
         except (SchemaError, OSError, ValueError, RecursionError) as exc:
             print(f"error: {path}: {exc}", file=sys.stderr)

@@ -8,6 +8,7 @@ from pathlib import Path
 import re
 
 from .layout import EdgeLayout, NodeLayout, RowLayout, layout_graph, text_width
+from .placement import LayoutEngine
 from .model import Graph
 from .palette import TYPE_EDGE_COLORS
 from .routing import Router
@@ -405,6 +406,7 @@ def render_svg(graph: Graph, *, show_imports: bool = False,
                show_nested_types: bool = False, interactive: bool = False,
                color_type_edges: bool = False,
                router: str | type[Router] = "default",
+               layout: str | type[LayoutEngine] = "default",
                hide: Sequence[str | Path] = (), treeshake: bool = False) -> str:
     """Return a static SVG, or opt into browser controls with ``interactive``.
 
@@ -416,6 +418,7 @@ def render_svg(graph: Graph, *, show_imports: bool = False,
     is not modified. ``color_type_edges`` assigns a
     distinct color to each type reference, cycling after twelve connections.
     ``router`` selects a registered routing algorithm or a custom router class.
+    ``layout`` selects node placement, which runs before edge routing.
     ``treeshake`` omits unused definitions from imported schemas.
     """
     graph = filter_hidden(graph, hide)
@@ -430,7 +433,7 @@ def render_svg(graph: Graph, *, show_imports: bool = False,
     graph = Graph(graph.title, graph.nodes,
                   [edge for edge in graph.edges if edge.kind not in hidden_kinds],
                   graph.root_source_file)
-    layout = layout_graph(graph, router=router)
+    layout = layout_graph(graph, router=router, layout=layout)
     color_indices: dict[int, int] = {}
     if color_type_edges:
         # Semantic order keeps colors independent of routing and other edge

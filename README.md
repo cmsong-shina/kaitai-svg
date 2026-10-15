@@ -88,12 +88,72 @@ enum을 SVG에서 제외합니다. 타입·enum 참조와 표현식에 명시된
 `uv run python -m kaitai_svg.palette`로 재현할 수 있습니다.
 
 
+### 요소 배치
+
+`--layout <layout-name>`으로 타입·enum 카드와 파일 그룹의 위치를 결정하는
+방법을 선택합니다. 연결선 경로를 정하는 `--router`와 독립적으로 지정할 수
+있습니다.
+
+| 이름        | 구현              | 동작                                                                  |
+| ----------- | ----------------- | --------------------------------------------------------------------- |
+| `default`   | `DefaultLayout`   | 기존 파일별 크기 균형 배치. 파일 정보가 없는 그래프는 기존 계층형 배치 |
+| `optimized` | `OptimizedLayout` | 연결 관계를 고려한 배치 후보를 만들고 실제 라우팅 결과로 비교          |
+
+```sh
+uv run kaitai-svg examples/sqlite3.ksy --layout optimized --router orthogonal
+```
+
+기본값은 `default`입니다. `--layout default --router default`는 기존 출력을
+유지합니다. `optimized`는 같은 파일의 요소를 그룹 안에 유지하면서 카드의
+순서·열 배정과 파일 그룹의 위치를 연결 관계에 맞춰 조정합니다. 타입 내부의
+`params`·`seq`·`instances`와 enum 행 순서는 바꾸지 않습니다.
+
+처리 순서는 **표 크기 측정과 포트 공간 확보 → 배치 → 실제 행·헤더 포트 계산
+→ 선택한 라우터로 경로 계산 → SVG 생성**입니다. `optimized`에서는 빠른
+근사 평가로 후보를 추린 뒤, 후보마다 포트와 경로를 다시 계산해 실제 공유
+선분·교차·꺾임·길이를 비교합니다. 기본 구현은 카드·열·패널의 지역 변경을
+최대 64개 검토하고, 기존 배치와 근사 점수가 좋은 후보 3개까지 합쳐 **최대
+4개 배치를 실제 라우팅**합니다. 노드 겹침 방지와 파일 그룹 제목 영역의
+여백을 유지합니다.
+
+최종 선택은 **공유 선분 길이 → 교차 수 → 꺾임 수 → 경로 길이 → 화면
+면적** 순서로 비교합니다. 앞선 값이 같을 때만 다음 값을 고려하므로,
+동일한 라우터를 사용한 기존 배치보다 이 비교 기준이 나빠지지 않습니다.
+면적은 마지막 기준이어서 연결선을 단순하게 만드는 대신 화면이 더 넓어질
+수 있습니다.
+
+인터페이스 `LayoutEngine`과 구현은
+[`src/kaitai_svg/placement.py`](src/kaitai_svg/placement.py)에 있습니다.
+외부 실행 파일 없이 동작하며 같은 입력과 옵션에는 같은 결과를 만듭니다.
+여러 후보를 라우팅하므로 `default`보다 느릴 수 있고, 전역 최적해나 모든
+지표의 동시 개선을 보장하지는 않습니다. `--layout optimized --router default`와
+`--layout default --router orthogonal`도 사용할 수 있습니다.
+
+SQLite 예제의 15개 카드·24개 연결선을 `orthogonal` 라우터로 비교한 실행
+결과는 다음과 같습니다. import·중첩 정의 연결은 기본값대로 숨겼으며,
+계산 시간은 실행 환경에 따라 달라집니다. 길이와 크기는 SVG 좌표 기준이며,
+화면 크기는 반올림했습니다.
+
+| 배치        | 공유 선분 길이 | 교차 수 | 꺾임 수 | 경로 길이  | 화면 크기       | 계산 시간 |
+| ----------- | -------------- | ------- | ------- | ---------- | --------------- | --------- |
+| `default`   | 0              | 63      | 100     | 42,465.5   | 2,270 × 2,316   | 약 1.26초 |
+| `optimized` | 0              | 30      | 62      | 27,416.75  | 4,518 × 2,259   | 약 3.61초 |
+
+다음 명령은 SVG 파일을 변경하지 않고 두 배치의 경로 지표와 화면 크기·계산
+시간을 비교합니다.
+
+```sh
+uv run python tests/compare_layouts.py examples/sqlite3.ksy --router orthogonal
+```
+
+
 ### 연결선 라우터
 
 `--router <router-name>`으로 연결선 경로 계산 방법을 선택합니다. 두 라우터
-모두 노드와 파일 그룹 제목 영역을 피해 수평·수직 경로를 만들며, 노드 배치와
-포트 위치는 같습니다. import·중첩 정의 표시, 색상, interactive 옵션과 함께
-사용할 수 있습니다.
+모두 배치된 노드와 파일 그룹 제목 영역을 피해 수평·수직 경로를 만듭니다.
+라우터는 노드를 이동하지 않으며, `--layout optimized`는 선택한 라우터의
+결과를 비교해 배치를 고릅니다. import·중첩 정의 표시, 색상, interactive
+옵션과 함께 사용할 수 있습니다.
 
 | 이름         | 구현               | 동작                                                                     |
 | ------------ | ------------------ | ------------------------------------------------------------------------ |
@@ -222,7 +282,7 @@ from kaitai_svg.render import render_svg
 
 source = Path("examples/sqlite3.ksy")
 output = convert(
-    source, interactive=True, router="orthogonal",
+    source, interactive=True, layout="optimized", router="orthogonal",
     color_type_edges=True, hide=["vlq_base128_be.ksy"], treeshake=True,
 )
 
@@ -232,11 +292,22 @@ svg_text = render_svg(graph, interactive=True)
 ```
 
 `convert`와 `render_svg`에는 CLI의 `show_imports`, `show_nested_types`,
-`color_type_edges`, `router`, `hide`, `treeshake` 옵션을 같은 이름의 키워드 인수로 전달할
+`color_type_edges`, `layout`, `router`, `hide`, `treeshake` 옵션을 같은 이름의 키워드 인수로 전달할
 수 있습니다. import 검색 경로는 `convert`와 `load_graph`의 `import_paths`로
-지정합니다. `router="default"`가 기본값이며 등록되지 않은 이름은
-`ValueError`를 발생시킵니다. Python API에는 이름 대신 구체적인 `Router` 하위
-**클래스**도 전달할 수 있습니다.
+지정합니다. `layout="default"`, `router="default"`가 기본값이며 등록되지 않은
+이름은 `ValueError`를 발생시킵니다. Python API에는 이름 대신 구체적인
+`LayoutEngine` 또는 `Router` 하위 **클래스**도 전달할 수 있습니다.
+
+```python
+from pathlib import Path
+from kaitai_svg import OptimizedLayout, OrthogonalRouter, convert
+
+output = convert(
+    Path("examples/sqlite3.ksy"),
+    layout=OptimizedLayout,
+    router=OrthogonalRouter,
+)
+```
 
 ```python
 from pathlib import Path
@@ -251,6 +322,14 @@ class CustomRouter(OrthogonalRouter):
 
 output = convert(Path("examples/sqlite3.ksy"), router=CustomRouter)
 ```
+
+`LayoutEngine`을 직접 구현할 때는 `placements(graph, nodes)`에서
+`kaitai_svg.placement.Placement`의 유한 목록을 반환합니다. 각 후보의
+`positions`에는 입력 노드 순서대로 `(x, y)`를 하나씩, `groups`에는 해당
+후보의 파일 그룹 사각형과 제목 정보를 넣습니다. `nodes`에는 표 측정과 포트
+공간 확장이 끝난 치수가 전달됩니다. 크기·행 순서를 보존하고 카드·그룹의
+충돌과 제목 침범을 방지해야 합니다. 후보마다 새 라우터를 생성하며, 마지막에
+선택한 후보의 좌표와 연결선이 SVG에 반영됩니다.
 
 `Router`를 직접 구현할 때는 추상 메서드
 `__init__(nodes, anchors, groups=None)`와 `route(start, end)`를 구현합니다.
@@ -281,6 +360,14 @@ uv build
 표준 테스트는 `unittest`를 사용하며, 포함된 SQLite 스키마와 상대 import의
 변환도 검사합니다. Node.js가 설치되어 있으면 생성된 SVG 스크립트의 상호작용
 검사를 추가로 실행합니다. Node.js가 없으면 해당 검사만 건너뜁니다.
+
+배치 기능 추가 후 Windows/Python 3.12에서 단위 테스트 130개와 wheel·소스
+배포물 빌드, wheel의 배치 이름·클래스 선택 검사를 통과했습니다. 기본 배치는
+두 예제에서 이전 코드의 좌표·연결선과 일치하며, 예제별 16개 표시 옵션의 SVG
+문자열도 일치했습니다. Chromium 156 / Firefox 157에서 두 배치의
+정적·interactive 렌더링, 연결 24개·카드 15개, 포커스 강조·문서 툴팁과
+JavaScript 오류 부재를 확인했습니다. 이번 배치 검증의 결과와 스크린샷은
+`.scratch/layout-qa/`에 있습니다.
 
 실제 화면과 글꼴, 포인터·키보드 동작은
 [Playwright](https://playwright.dev/python/docs/intro) 브라우저 검사로 확인할

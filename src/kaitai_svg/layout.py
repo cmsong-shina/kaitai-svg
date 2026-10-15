@@ -15,6 +15,8 @@ import unicodedata
 
 from .model import Edge, Graph, Node, Row
 from .routing import PORT_OFFSET, Router, get_router
+from .placement import LayoutEngine, get_layout_engine
+from .geometry import measure_paths
 
 
 @dataclass
@@ -408,9 +410,51 @@ def _place_file_groups(nodes: list[NodeLayout]) -> list[FileGroupLayout]:
     return [panel for panel in panels if panel.source_file]
 
 
-def layout_graph(graph: Graph, *, router: str | type[Router] = "default") -> Layout:
-    """Place all nodes, then route with a built-in name or Router subclass."""
+def _route_edges(graph: Graph, nodes: list[NodeLayout], groups: list[FileGroupLayout],
+                 router_type: type[Router], outgoing, incoming) -> list[EdgeLayout]:
+    """Assign actual row/header ports again whenever node positions change."""
+    by_id = {node.node.id: node for node in nodes}
+    source_ports: dict[int, tuple[float, float]] = {}
+    for (node_id, row_id), indices in outgoing.items():
+        node = by_id[node_id]
+        center = node.y + node.header_height / 2
+        spacing = 12
+        if row_id is not None:
+            row = next(row for row in node.rows if row.row.id == row_id)
+            center = node.y + row.y + row.height / 2
+            spacing = 18
+        indices.sort(key=lambda index: (by_id[graph.edges[index].target].y, index))
+        for order, index in enumerate(indices):
+            source_ports[index] = (node.x + node.width, center + spacing * (order - (len(indices) - 1) / 2))
+    target_ports: dict[int, tuple[float, float]] = {}
+    for node_id, indices in incoming.items():
+        node = by_id[node_id]
+        indices.sort(key=lambda index: (source_ports[index][1], index))
+        for order, index in enumerate(indices):
+            target_ports[index] = (node.x, node.y + node.header_height / 2 + 12 * (order - (len(indices) - 1) / 2))
+    ports = [(source_ports[index], target_ports[index]) for index in range(len(graph.edges))]
+    connections = [((start[0] + PORT_OFFSET, start[1]), (end[0] - PORT_OFFSET, end[1]))
+                   for start, end in ports]
+    anchors = [anchor for connection in connections for anchor in connection]
+    routing = router_type(nodes, anchors, groups)
+    paths = routing.route_all(connections)
+    if len(paths) != len(graph.edges):
+        raise ValueError("Router must return one path per connector")
+    edges = [EdgeLayout(edge, _simplify([start, *path, end]))
+             for edge, (start, end), path in zip(graph.edges, ports, paths)]
+    return edges
+
+
+def layout_graph(graph: Graph, *, router: str | type[Router] = "default",
+                 layout: str | type[LayoutEngine] = "default") -> Layout:
+    """Measure, place, assign ports, route, and select a complete drawing.
+
+    The optimized engine offers a bounded shortlist, including the original
+    placement. Each candidate receives fresh ports and a fresh selected router.
+    Shared length, crossings, bends, route length and area decide the winner.
+    """
     router_type = get_router(router)
+    engine_type = get_layout_engine(layout)
     if not graph.nodes:
         return Layout([], [], 720, 260)
     ids = [node.id for node in graph.nodes]
@@ -449,40 +493,35 @@ def layout_graph(graph: Graph, *, router: str | type[Router] = "default") -> Lay
                 section.height += extra
                 offset += extra
         node.height += offset
-    if any(getattr(node.node, "source_file", "") for node in nodes):
-        groups = _place_file_groups(nodes)
-    else:
-        _place_layered(graph, nodes)
-        groups = []
-    source_ports: dict[int, tuple[float, float]] = {}
-    for (node_id, row_id), indices in outgoing.items():
-        node = by_id[node_id]
-        center = node.y + node.header_height / 2
-        spacing = 12
-        if row_id is not None:
-            row = next(row for row in node.rows if row.row.id == row_id)
-            center = node.y + row.y + row.height / 2
-            spacing = 18
-        indices.sort(key=lambda index: (by_id[graph.edges[index].target].y, index))
-        for order, index in enumerate(indices):
-            source_ports[index] = (node.x + node.width, center + spacing * (order - (len(indices) - 1) / 2))
-    target_ports: dict[int, tuple[float, float]] = {}
-    for node_id, indices in incoming.items():
-        node = by_id[node_id]
-        indices.sort(key=lambda index: (source_ports[index][1], index))
-        for order, index in enumerate(indices):
-            target_ports[index] = (node.x, node.y + node.header_height / 2 + 12 * (order - (len(indices) - 1) / 2))
-    ports = [(source_ports[index], target_ports[index]) for index in range(len(graph.edges))]
-    connections = [((start[0] + PORT_OFFSET, start[1]), (end[0] - PORT_OFFSET, end[1]))
-                   for start, end in ports]
-    anchors = [anchor for connection in connections for anchor in connection]
-    routing = router_type(nodes, anchors, groups)
-    paths = routing.route_all(connections)
-    if len(paths) != len(graph.edges):
-        raise ValueError("Router must return one path per connector")
-    edges = [EdgeLayout(edge, _simplify([start, *path, end]))
-             for edge, (start, end), path in zip(graph.edges, ports, paths)]
-    width = max([node.x + node.width for node in nodes] + [group.x + group.width for group in groups]) + 88
-    height = max([node.y + node.height for node in nodes] + [group.y + group.height for group in groups]) + 88
-    # A narrow enum card must not clip the diagram caption and relation legend.
-    return Layout(nodes, edges, max(680, width), height, groups)
+    placements = engine_type().placements(graph, nodes)
+    if not placements:
+        raise ValueError("Layout engine must return at least one placement")
+    best = None
+    routing_error = None
+    for placement in placements:
+        if len(placement.positions) != len(nodes):
+            raise ValueError("Layout engine must return one position per node")
+        for node, (x, y) in zip(nodes, placement.positions):
+            if not (math.isfinite(x) and math.isfinite(y) and x >= 0 and y >= 114):
+                raise ValueError("Layout positions must be finite and below the diagram caption")
+            node.x, node.y = x, y
+        groups = placement.groups
+        try:
+            edges = _route_edges(graph, nodes, groups, router_type, outgoing, incoming)
+        except ValueError as error:
+            routing_error = error
+            continue
+        width = max([node.x + node.width for node in nodes] + [group.x + group.width for group in groups]) + 88
+        height = max([node.y + node.height for node in nodes] + [group.y + group.height for group in groups]) + 88
+        width = max(680, width)
+        # The single-candidate default retains its original routes and cost.
+        score = ((*measure_paths([edge.points for edge in edges]).quality, width * height)
+                 if len(placements) > 1 else ())
+        if best is None or score < best[0]:
+            best = score, placement, edges, width, height
+    if best is None:
+        raise routing_error or ValueError("Could not route any layout candidate")
+    _, placement, edges, width, height = best
+    for node, position in zip(nodes, placement.positions):
+        node.x, node.y = position
+    return Layout(nodes, edges, width, height, placement.groups)

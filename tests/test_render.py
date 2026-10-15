@@ -159,15 +159,22 @@ class RenderTests(SchemaTestCase):
                     self.assertGreater(len(lines), 1)
                     self.assertEqual("".join(element.text or "" for element in lines), content)
                     for element in lines:
-                        right_edge = float(element.get("x")) + estimated_text_width(element.text or "", font_size, monospace)
+                        advance = estimated_text_width(element.text or "", font_size, monospace)
+                        right_edge = float(element.get("x")) + (0 if style.get("text-anchor") == "end" else advance)
                         self.assertLessEqual(right_edge, box.width - 16, (class_name, element.text))
                 for cell in (element for element in node_group.iter(SVG + "g")
                              if element.get("class") == "table-cell"):
                     for element in cell.iter(SVG + "text"):
                         style = class_style(xml, element.get("class"))
                         font_size = float(style["font-size"].removesuffix("px"))
-                        self.assertGreaterEqual(float(element.get("x")), float(cell.get("data-cell-left")))
-                        right_edge = float(element.get("x")) + estimated_text_width(element.text or "", font_size, True)
+                        advance = estimated_text_width(element.text or "", font_size, True)
+                        end_anchored = style.get("text-anchor") == "end"
+                        left_edge = float(element.get("x")) - (advance if end_anchored else 0)
+                        self.assertGreaterEqual(left_edge, float(cell.get("data-cell-left")))
+                        right_edge = float(element.get("x")) + (0 if end_anchored else advance)
+                        if cell.get("data-column") == "size":
+                            self.assertTrue(end_anchored)
+                            self.assertEqual(right_edge, float(cell.get("data-cell-right")))
                         self.assertLessEqual(right_edge, float(cell.get("data-cell-right")),
                                              (cell.get("data-column"), element.text))
 

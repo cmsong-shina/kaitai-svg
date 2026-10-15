@@ -50,7 +50,7 @@ svg { background: #f4f7fb; color: #18283e; font-family: 'Segoe UI', 'Noto Sans',
 .field-label { font-size: 13px; font-weight: 600; fill: #253b53; }
 .field-type { font-size: 12px; fill: #216a88; }
 .field-pos { font-size: 12px; fill: #677e92; font-variant-numeric: tabular-nums; }
-.field-size { font-size: 12px; font-weight: 600; fill: #185c84; font-variant-numeric: tabular-nums; }
+.field-size { text-anchor: end; font-size: 12px; font-weight: 600; fill: #185c84; font-variant-numeric: tabular-nums; }
 .field-detail { font-size: 11px; fill: #718096; }
 .row-kind-instance .field-label { fill: #8251a8; }
 .row-kind-param .field-label { fill: #9a6712; }
@@ -378,7 +378,7 @@ def _render_row(item: NodeLayout, row: RowLayout, index: int, row_index: int, *,
         lines, class_name = cells[column.key]
         parts.extend([
             f'<g class="table-cell" data-column="{column.key}" data-cell-left="{_number(left)}" data-cell-right="{_number(right)}">',
-            _text_lines(lines, left, 18, 16, class_name), '</g>',
+            _text_lines(lines, right if column.key == "size" else left, 18, 16, class_name), '</g>',
         ])
         if column.x:
             parts.append(f'<path class="column-divider" d="M{_number(column.x)} 0 V{_number(row.detail_y - 8 if row.detail_lines else row.height)}"/>')
@@ -486,7 +486,12 @@ def render_svg(graph: Graph, *, show_imports: bool = False,
         color_indices = {index: rank % len(TYPE_EDGE_COLORS)
                          for rank, (index, _) in enumerate(type_edges)}
     palette = TYPE_EDGE_COLORS[:min(len(color_indices), len(TYPE_EDGE_COLORS))]
-    width, height = _number(layout.width), _number(layout.height)
+    # Crop blank space without moving the routing coordinates. Preserve any
+    # connector tracks that extend into the usual left margin.
+    left = min(32, max(0, min([64, *(node.x for node in layout.nodes),
+                              *(group.x for group in layout.groups),
+                              *(x for edge in layout.edges for x, _ in edge.points)]) - 8))
+    width, height = _number(layout.width - left), _number(layout.height)
     title = graph.title or "Kaitai Struct schema"
     visible_title = title.replace("\n", " ")
     max_title_units = min(90, int((layout.width - 128) / (25 * 0.67)))
@@ -524,7 +529,7 @@ def render_svg(graph: Graph, *, show_imports: bool = False,
         css += (f'\n.type-edge-color-{index} .edge-path {{ stroke: {color}; }}'
                 f'\n.type-edge-color-{index} .port {{ fill: {color}; }}\n')
     parts = ['<?xml version="1.0" encoding="UTF-8"?>',
-             f'<svg xmlns="http://www.w3.org/2000/svg" {root_attrs} viewBox="0 0 {width} {height}" role="graphics-document" aria-labelledby="diagram-title diagram-desc">',
+             f'<svg xmlns="http://www.w3.org/2000/svg" {root_attrs} viewBox="{_number(left)} 0 {width} {height}" role="graphics-document" aria-labelledby="diagram-title diagram-desc">',
              f'<title id="diagram-title">{_xml(title)}</title>',
              f'<desc id="diagram-desc">{description} Arrows connect a field to the type or enum it uses.{import_description}{nested_description}{color_description}</desc>',
              '<defs>', f'<style><![CDATA[{css}]]></style>',
@@ -543,7 +548,7 @@ def render_svg(graph: Graph, *, show_imports: bool = False,
                            for index, color in enumerate(TYPE_EDGE_COLORS[:3]))
         type_legend = (f'<g><title>Type connections: up to 12 distinct colors; colors repeat after 12.</title>'
                        f'{swatches}<text x="94" y="110">Type</text></g>')
-    parts.extend(['</defs>', f'<rect class="canvas-bg" width="{width}" height="{height}"/>', '<g id="viewport">',
+    parts.extend(['</defs>', f'<rect class="canvas-bg" x="{_number(left)}" width="{width}" height="{height}"/>', '<g id="viewport">',
                   f'<text class="diagram-title" x="64" y="43">{_xml(visible_title)}</text>',
                   f'<text class="diagram-caption" x="64" y="65">{len(graph.nodes)} definitions · {len(graph.edges)} connections</text>',
                   f'<text class="diagram-caption" x="64" y="85">{caption}</text>',

@@ -171,7 +171,8 @@ def assert_text_in_cards(page) -> None:
       const row = cell.closest('.row').querySelector('.row-hit').getBoundingClientRect();
       return [...cell.querySelectorAll('text')].flatMap(text => {
         const bounds = text.getBoundingClientRect();
-        return bounds.left < left - leftTolerance || bounds.right > right + tolerance ||
+        const rightTolerance = getComputedStyle(text).textAnchor === 'end' ? leftTolerance : tolerance;
+        return bounds.left < left - leftTolerance || bounds.right > right + rightTolerance ||
                bounds.top < row.top - tolerance || bounds.bottom > row.bottom + tolerance
           ? [{node: cell.closest('.node').dataset.nodeId,
               row: cell.closest('.row').dataset.rowId, column: cell.dataset.column,

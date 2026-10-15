@@ -172,7 +172,7 @@ def _measure(node: Node) -> NodeLayout:
     }
     enum = node.kind == "enum"
     bounds = ({"type": (72, 112), "id": (200, 328)} if enum else
-              {"pos": (64, 96), "size": (70, 100), "type": (150, 236), "id": (170, 288)})
+              {"pos": (64, 96), "size": (94, 124), "type": (138, 224), "id": (158, 276)})
     widths = {}
     for key, (minimum, maximum) in bounds.items():
         font_size = 13 if key == "id" else 12
@@ -392,8 +392,8 @@ def _place_file_groups(nodes: list[NodeLayout]) -> list[FileGroupLayout]:
             candidate_lanes[lane].append(panel)
             heights[lane] += panel.height + 96
         candidate_widths = [max(panel.width for panel in lane) for lane in candidate_lanes]
-        canvas_width = 152 + sum(candidate_widths) + 160 * (lane_count - 1)
-        canvas_height = 220 + max(heights) - 96
+        canvas_width = 96 + sum(candidate_widths) + 160 * (lane_count - 1)
+        canvas_height = 164 + max(heights) - 96
         score = (max(canvas_width / 1.5, canvas_height), canvas_width * canvas_height, lane_count)
         candidates.append((score, candidate_lanes, candidate_widths))
     _, lanes, widths = min(candidates, key=lambda candidate: candidate[0])
@@ -516,13 +516,12 @@ def layout_graph(graph: Graph, *, router: str | type[Router] = "default",
         except ValueError as error:
             routing_error = error
             continue
-        width = max([node.x + node.width for node in nodes] + [group.x + group.width for group in groups]) + 88
-        height = max([node.y + node.height for node in nodes] + [group.y + group.height for group in groups]) + 88
+        width = max([node.x + node.width for node in nodes] + [group.x + group.width for group in groups]) + 32
+        height = max([node.y + node.height for node in nodes] + [group.y + group.height for group in groups]) + 32
         width = max(680, width)
-        if engine.web_vertical:
-            # Include actual outer routes when applying the web width limit.
-            width = max([width, *(x + 8 for edge in edges for x, _ in edge.points)])
-            height = max([height, *(y + 8 for edge in edges for _, y in edge.points)])
+        # Keep outer connector tracks inside the tighter canvas margins.
+        width = max([width, *(x + 8 for edge in edges for x, _ in edge.points)])
+        height = max([height, *(y + 8 for edge in edges for _, y in edge.points)])
         if not engine.accepts_canvas(width, height):
             continue
         # The single-candidate default retains its original routes and cost.

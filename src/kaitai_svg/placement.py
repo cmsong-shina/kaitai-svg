@@ -363,9 +363,9 @@ class VerticalOptimizedLayout(OptimizedLayout):
             self.empty_size()
             return [Placement([], [])]
         framed = any(node.node.source_file for node in nodes)
-        # x=64, optional 24px panel padding on each side, and 88px on the
-        # right protect ports, outer tracks, arrowheads and the diagram caption.
-        margin = 200 if framed else 152
+        # 64px placement inset and 32px right margin, plus optional panel padding.
+        # Actual outer connector tracks are included after routing.
+        margin = 144 if framed else 96
         self._check_width(max(680, max(node.width for node in nodes) + margin))
         indices = {node.node.id: i for i, node in enumerate(nodes)}
         edges = [(indices[edge.source], indices[edge.target], edge.source_row) for edge in graph.edges]

@@ -11,7 +11,7 @@ from .layout import EdgeLayout, NodeLayout, RowLayout, layout_graph, text_width
 from .model import Graph
 from .palette import TYPE_EDGE_COLORS
 from .routing import Router
-from .visibility import filter_hidden
+from .visibility import filter_hidden, filter_unused_imports
 
 
 _CSS = """
@@ -405,7 +405,7 @@ def render_svg(graph: Graph, *, show_imports: bool = False,
                show_nested_types: bool = False, interactive: bool = False,
                color_type_edges: bool = False,
                router: str | type[Router] = "default",
-               hide: Sequence[str | Path] = ()) -> str:
+               hide: Sequence[str | Path] = (), treeshake: bool = False) -> str:
     """Return a static SVG, or opt into browser controls with ``interactive``.
 
     A native SVG ``title`` is included on every documented element, so the
@@ -416,8 +416,11 @@ def render_svg(graph: Graph, *, show_imports: bool = False,
     is not modified. ``color_type_edges`` assigns a
     distinct color to each type reference, cycling after twelve connections.
     ``router`` selects a registered routing algorithm or a custom router class.
+    ``treeshake`` omits unused definitions from imported schemas.
     """
     graph = filter_hidden(graph, hide)
+    if treeshake:
+        graph = filter_unused_imports(graph)
     hidden_kinds = set()
     if not show_imports:
         hidden_kinds.add("import")
@@ -425,7 +428,8 @@ def render_svg(graph: Graph, *, show_imports: bool = False,
         hidden_kinds.add("contains")
     # Filter before layout so hidden connections consume no ports or routes.
     graph = Graph(graph.title, graph.nodes,
-                  [edge for edge in graph.edges if edge.kind not in hidden_kinds])
+                  [edge for edge in graph.edges if edge.kind not in hidden_kinds],
+                  graph.root_source_file)
     layout = layout_graph(graph, router=router)
     color_indices: dict[int, int] = {}
     if color_type_edges:

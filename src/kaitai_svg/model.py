@@ -41,3 +41,4 @@ class Graph:
     title: str
     nodes: list[Node]
     edges: list[Edge]
+    root_source_file: str = ""

@@ -393,4 +393,5 @@ def load_graph(path: Path, import_paths: Sequence[Path] = ()) -> Graph:
     builder.index()
     builder.populate()
     annotate_sizes(builder.scopes.values(), builder.resolve)
-    return Graph(root.data["meta"].get("title", root.name), builder.nodes, builder.edges)
+    return Graph(root.data["meta"].get("title", root.name), builder.nodes, builder.edges,
+                 root_source_file=builder.source_file(root.path))

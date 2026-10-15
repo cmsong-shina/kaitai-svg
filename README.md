@@ -46,6 +46,14 @@ import와 중첩 정의 연결선은 기본적으로 그리지 않습니다. `--
 사용할 수 있으며, import 파일 검증·타입/enum 정의 포함·필드 참조선에는 영향을
 주지 않습니다.
 
+`--treeshake`를 지정하면 입력 파일에서 참조하지 않는 import 파일의 타입과
+enum을 SVG에서 제외합니다. 타입·enum 참조와 표현식에 명시된 `::` 참조를
+따라가므로 표시되는 정의의 참조 대상은 계속 표시하고, 중첩 정의가 쓰이면 그
+부모 정의도 함께 남깁니다.
+입력 파일에 선언된 정의는 모두 표시합니다. 이 옵션은 import 파일의 로딩과
+검증에는 영향을 주지 않으며 `--show-imports`, `--show-nested-types`, `--hide`와
+함께 사용할 수 있습니다.
+
 `--hide <id>|<filename>`으로 타입·enum·필드·매개변수·인스턴스·enum 값을
 렌더링에서 제외합니다. 옵션을 여러 번 지정하면 모든 대상을 함께 숨깁니다. ID는
 `text_payload`, `packet::text_payload`, `packet::text_payload::text`처럼
@@ -215,7 +223,7 @@ from kaitai_svg.render import render_svg
 source = Path("examples/sqlite3.ksy")
 output = convert(
     source, interactive=True, router="orthogonal",
-    color_type_edges=True, hide=["vlq_base128_be.ksy"],
+    color_type_edges=True, hide=["vlq_base128_be.ksy"], treeshake=True,
 )
 
 # SVG 문자열만 필요한 경우
@@ -224,7 +232,7 @@ svg_text = render_svg(graph, interactive=True)
 ```
 
 `convert`와 `render_svg`에는 CLI의 `show_imports`, `show_nested_types`,
-`color_type_edges`, `router`, `hide` 옵션을 같은 이름의 키워드 인수로 전달할
+`color_type_edges`, `router`, `hide`, `treeshake` 옵션을 같은 이름의 키워드 인수로 전달할
 수 있습니다. import 검색 경로는 `convert`와 `load_graph`의 `import_paths`로
 지정합니다. `router="default"`가 기본값이며 등록되지 않은 이름은
 `ValueError`를 발생시킵니다. Python API에는 이름 대신 구체적인 `Router` 하위
